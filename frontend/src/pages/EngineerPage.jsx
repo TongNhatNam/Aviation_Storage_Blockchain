@@ -8,7 +8,16 @@ export function EngineerPage({ wallet, roles, api }) {
 
   return (
     <div className="avi-grid">
-      <SectionCard title="Kỹ sư kiểm định" subtitle="Cập nhật kiểm định cho vật tư/phụ tùng theo chuẩn bảo trì">
+      <SectionCard
+        title={
+          <span className="avi-pageTitle">
+            <span className="avi-pageIcon avi-pageIcon--engineer" aria-hidden="true" />
+            <span>Kỹ sư kiểm định</span>
+          </span>
+        }
+        subtitle="Cập nhật kiểm định cho vật tư/phụ tùng theo chuẩn bảo trì"
+        right={<img className="avi-pageBadge" src="/role_engineer.png" alt="Engineer" />}
+      >
         {!ready ? (
           <div className="avi-alert avi-alert--warn">Hãy connect MetaMask và chuyển sang Ganache 1337.</div>
         ) : null}

@@ -12,11 +12,21 @@ function getContractAddress(chainId) {
 export function useAviationStorageEthers({ chainId }) {
   const address = getContractAddress(chainId);
 
+  async function ensureDeployed(provider) {
+    const code = await provider.getCode(address);
+    if (!code || code === "0x") {
+      throw new Error(
+        "Không thấy contract tại address hiện tại. Có thể Ganache vừa restart. Hãy chạy lại npm run dev (deploy + seed) rồi refresh trang."
+      );
+    }
+  }
+
   async function getSignerContract() {
     if (!window.ethereum) throw new Error("Chưa có MetaMask.");
     if (!address) throw new Error("Chưa có address contract cho chainId này.");
 
     const provider = new BrowserProvider(window.ethereum);
+    await ensureDeployed(provider);
     const signer = await provider.getSigner();
     return new Contract(address, abi, signer);
   }
@@ -26,6 +36,7 @@ export function useAviationStorageEthers({ chainId }) {
     if (!address) throw new Error("Chưa có address contract cho chainId này.");
 
     const provider = new BrowserProvider(window.ethereum);
+    await ensureDeployed(provider);
     return new Contract(address, abi, provider);
   }
 

@@ -23,7 +23,7 @@ test.describe("AviationStorage", () => {
 
     await viem.assertions.emit(
       aviationStorage.write.registerItem(
-        ["PN-A320-ELT-0001", "ELT", "HAN-WH-A1", 2n, "ipfs://meta"],
+        ["PN-A320-ELT-0001", "ELT", "0001", "Item Name", "HAN-WH-A1", "ipfs://meta"],
         { account: warehouse.account }
       ),
       aviationStorage,
@@ -32,55 +32,86 @@ test.describe("AviationStorage", () => {
 
     const item = await aviationStorage.read.getItem(["PN-A320-ELT-0001"]);
     assert.equal(item.code, "PN-A320-ELT-0001");
-    assert.equal(item.quantity, 2n);
     assert.equal(item.location, "HAN-WH-A1");
+    // status is 0 (Unknown)
+    assert.equal(item.lastInspectionStatus, 0);
   });
 
-  test("chặn người không có quyền warehouse khi đăng ký", async () => {
-    const { viem, aviationStorage, other } = await deployFixture();
-
-    await viem.assertions.revertWith(
-      aviationStorage.write.registerItem(["X", "Y", "Z", 1n, ""], { account: other.account }),
-      "ONLY_WAREHOUSE"
-    );
-  });
-
-  test("chặn xuất kho vượt số lượng", async () => {
+  test("chặn xuất kho nếu thiết bị chưa được kiểm định Serviceable", async () => {
     const { viem, aviationStorage, warehouse } = await deployFixture();
 
-    await aviationStorage.write.registerItem(["A", "B", "C", 1n, ""], { account: warehouse.account });
+    await aviationStorage.write.registerItem(["A", "B", "C", "D", "E", ""], { account: warehouse.account });
 
+    // Try to transfer while status is Unknown (0), should revert with NOT_SERVICEABLE_YET
     await viem.assertions.revertWith(
-      aviationStorage.write.removeStock(["A", 2n, "DEST"], { account: warehouse.account }),
-      "INSUFFICIENT_QTY"
+      aviationStorage.write.transferItem(["A", "DEST"], { account: warehouse.account }),
+      "NOT_SERVICEABLE_YET"
     );
   });
 
-  test("cho phép engineer kiểm định và chặn người khác", async () => {
-    const { viem, aviationStorage, warehouse, engineer, other } = await deployFixture();
+  test("cho phép engineer kiểm định và warehouse transfer sau khi serviceable", async () => {
+    const { viem, aviationStorage, warehouse, engineer } = await deployFixture();
 
-    await aviationStorage.write.registerItem(["A", "B", "C", 1n, ""], { account: warehouse.account });
+    await aviationStorage.write.registerItem(["A", "B", "C", "D", "E", ""], { account: warehouse.account });
 
+    // Inspect Item - Serviceable (1)
     await viem.assertions.emit(
       aviationStorage.write.inspectItem(["A", 1, "ipfs://inspection"], { account: engineer.account }),
       aviationStorage,
       "ItemInspected"
     );
 
+    const item = await aviationStorage.read.getItem(["A"]);
+    assert.equal(item.lastInspectionStatus, 1);
+
+    // Transfer should now succeed
+    await viem.assertions.emit(
+      aviationStorage.write.transferItem(["A", "NEW\_DEST"], { account: warehouse.account }),
+      aviationStorage,
+      "ItemTransferred"
+    );
+
+    const updatedItem = await aviationStorage.read.getItem(["A"]);
+    assert.equal(updatedItem.location, "NEW\_DEST");
+  });
+
+  test("khoá chỉnh sửa sau khi chuyển lên Aircraft", async () => {
+    const { viem, aviationStorage, warehouse, engineer } = await deployFixture();
+
+    await aviationStorage.write.registerItem(["A", "B", "C", "D", "E", ""], { account: warehouse.account });
+    await aviationStorage.write.inspectItem(["A", 1, "ipfs://inspection"], { account: engineer.account });
+
+    await viem.assertions.emit(
+      aviationStorage.write.transferItem(["A", "Aircraft VN-A899 (A350)"], { account: warehouse.account }),
+      aviationStorage,
+      "ItemTransferred"
+    );
+
+    const item = await aviationStorage.read.getItem(["A"]);
+    assert.equal(item.isFinalized, true);
+
     await viem.assertions.revertWith(
-      aviationStorage.write.inspectItem(["A", 1, "ipfs://inspection"], { account: other.account }),
-      "ONLY_ENGINEER"
+      aviationStorage.write.updateLocation(["A", "HAN-WH-A2"], { account: warehouse.account }),
+      "ITEM_FINALIZED"
+    );
+
+    await viem.assertions.revertWith(
+      aviationStorage.write.transferItem(["A", "Hangar 1 - HAN"], { account: warehouse.account }),
+      "ITEM_FINALIZED"
+    );
+
+    await viem.assertions.revertWith(
+      aviationStorage.write.inspectItem(["A", 2, "ipfs://attempt"], { account: engineer.account }),
+      "ITEM_FINALIZED"
     );
   });
 
-  test("cộng kho cập nhật số lượng và có thể cập nhật location", async () => {
-    const { aviationStorage, warehouse } = await deployFixture();
+  test("chặn người không có quyền warehouse khi đăng ký", async () => {
+    const { viem, aviationStorage, other } = await deployFixture();
 
-    await aviationStorage.write.registerItem(["A", "B", "C", 1n, ""], { account: warehouse.account });
-    await aviationStorage.write.addStock(["A", 2n, "NEW"], { account: warehouse.account });
-
-    const item = await aviationStorage.read.getItem(["A"]);
-    assert.equal(item.quantity, 3n);
-    assert.equal(item.location, "NEW");
+    await viem.assertions.revertWith(
+      aviationStorage.write.registerItem(["X", "Y", "Z", "N", "L", ""], { account: other.account }),
+      "ONLY_WAREHOUSE"
+    );
   });
 });

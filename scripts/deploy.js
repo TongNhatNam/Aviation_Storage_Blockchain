@@ -40,6 +40,12 @@ async function sendTransaction({ publicClient, from, to, data, value }) {
       method: "eth_estimateGas",
       params: [tx],
     });
+    const estimated = hexToBigInt(tx.gas);
+    const padded = (estimated * 12n) / 10n + 50_000n;
+    const minGas = 500_000n;
+    const maxGas = 6_000_000n;
+    const safeGas = padded < minGas ? minGas : padded > maxGas ? maxGas : padded;
+    tx.gas = numberToHex(safeGas);
   } catch {
     tx.gas = numberToHex(6_000_000);
   }

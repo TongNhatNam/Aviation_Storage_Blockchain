@@ -26,7 +26,7 @@ library BaseItem {
     uint256 createdAt;
     uint256 updatedAt;
     address lastUpdatedBy;
+    bool isFinalized;
     AuditRecord[] history; // Dấu vết lịch sử
   }
 }
-

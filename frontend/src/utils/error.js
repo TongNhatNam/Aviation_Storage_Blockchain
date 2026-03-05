@@ -7,9 +7,14 @@ export function formatError(error) {
   }
 
   const short = error?.shortMessage;
+  const message = error?.message;
+
+  const combined = `${short ?? ""} ${message ?? ""}`.toLowerCase();
+  if (code === "BAD_DATA" || combined.includes("could not decode result data")) {
+    return "Không đọc được dữ liệu từ contract. Thường do Ganache vừa restart (address cũ không còn) hoặc đang sai network. Hãy chạy lại npm run dev và chuyển MetaMask sang Ganache 1337.";
+  }
   if (typeof short === "string" && short.trim()) return short;
 
-  const message = error?.message;
   if (typeof message === "string" && message.trim()) return message;
 
   const nestedMessage =
@@ -24,4 +29,3 @@ export function formatError(error) {
     return "Lỗi không xác định.";
   }
 }
-

@@ -17,11 +17,6 @@ export function useAviationStorageWeb3({ chainId }) {
     return new Web3(window.ethereum);
   }
 
-  async function getFromAccount(web3) {
-    const accounts = await web3.eth.getAccounts();
-    if (!accounts?.[0]) throw new Error("Chưa connect MetaMask.");
-    return accounts[0];
-  }
   function getContract(web3) {
     if (!address) throw new Error("Chưa có address contract cho chainId này.");
     return new web3.eth.Contract(abi, address);
@@ -29,6 +24,13 @@ export function useAviationStorageWeb3({ chainId }) {
 
   async function getContractAndWeb3() {
     const web3 = getWeb3();
+    if (!address) throw new Error("Chưa có address contract cho chainId này.");
+    const code = await web3.eth.getCode(address);
+    if (!code || code === "0x") {
+      throw new Error(
+        "Không thấy contract tại address hiện tại. Có thể Ganache vừa restart. Hãy chạy lại npm run dev (deploy + seed) rồi refresh trang."
+      );
+    }
     const contract = getContract(web3);
     return { web3, contract };
   }

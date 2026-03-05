@@ -43,7 +43,16 @@ export function AdminPage({ wallet, roles, contractAddress, onRoleChanged }) {
 
   return (
     <div className="avi-grid">
-      <SectionCard title="Quản trị" subtitle="Quản lý quyền và chuyển Admin">
+      <SectionCard
+        title={
+          <span className="avi-pageTitle">
+            <span className="avi-pageIcon avi-pageIcon--admin" aria-hidden="true" />
+            <span>Quản trị</span>
+          </span>
+        }
+        subtitle="Quản lý quyền và chuyển Admin"
+        right={<img className="avi-pageBadge" src="/role_admin.png" alt="Admin" />}
+      >
         {!ready ? <div className="avi-alert avi-alert--warn">Hãy connect MetaMask và chuyển sang Ganache 1337.</div> : null}
         {ready && !allowed ? <div className="avi-alert avi-alert--error">Chỉ Admin mới thao tác được. Hãy chuyển sang Admin (0xf39f…).</div> : null}
         <div className="avi-muted" style={{ marginTop: 10 }}>

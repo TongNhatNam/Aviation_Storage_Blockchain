@@ -50,6 +50,18 @@ export function useAviationRoles({ chainId, account }) {
     setState((s) => ({ ...s, loading: true, error: undefined }));
     try {
       const provider = new BrowserProvider(window.ethereum);
+      const code = await provider.getCode(address);
+      if (!code || code === "0x") {
+        setState({
+          loading: false,
+          admin: undefined,
+          isAdmin: false,
+          isWarehouse: false,
+          isEngineer: false,
+          error: "Không thấy contract tại address hiện tại. Có thể Ganache vừa restart. Hãy chạy lại npm run dev (deploy + seed) rồi refresh trang.",
+        });
+        return;
+      }
       const contract = new Contract(address, abi, provider);
       const [admin, isWarehouse, isEngineer] = await Promise.all([
         contract.admin(),
@@ -70,7 +82,7 @@ export function useAviationRoles({ chainId, account }) {
   }, [account, address]);
 
   useEffect(() => {
-    refresh().catch(() => {});
+    refresh().catch(() => { });
   }, [refresh]);
 
   return {

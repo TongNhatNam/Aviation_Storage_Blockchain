@@ -9,6 +9,22 @@ contract AviationStorage is AviationAccessControl {
 
   bytes32[] private _itemIds;
 
+  function _isAircraftDestination(string calldata destination) private pure returns (bool) {
+    bytes memory b = bytes(destination);
+    uint256 i = 0;
+    while (i < b.length && (b[i] == 0x20 || b[i] == 0x09)) {
+      i += 1;
+    }
+    if (b.length < i + 8) return false;
+    bytes memory needle = bytes("aircraft");
+    for (uint256 j = 0; j < 8; j += 1) {
+      uint8 c = uint8(b[i + j]);
+      if (c >= 65 && c <= 90) c += 32;
+      if (c != uint8(needle[j])) return false;
+    }
+    return true;
+  }
+
   event ItemRegistered(
     bytes32 indexed itemId,
     string code,
@@ -93,6 +109,7 @@ contract AviationStorage is AviationAccessControl {
     item.createdAt = block.timestamp;
     item.updatedAt = block.timestamp;
     item.lastUpdatedBy = msg.sender;
+    item.isFinalized = false;
 
     item.history.push(BaseItem.AuditRecord({
       timestamp: block.timestamp,
@@ -116,13 +133,17 @@ contract AviationStorage is AviationAccessControl {
     require(bytes(destination).length != 0, "EMPTY_DESTINATION");
 
     BaseItem.Item storage item = _items[itemId];
+    require(!item.isFinalized, "ITEM_FINALIZED");
     
-    // RED-TAG LOGIC: Prevent transfer if unserviceable (hỏng)
-    require(item.lastInspectionStatus != BaseItem.InspectionStatus.Unserviceable, "ITEM_UNSERVICEABLE");
+    // STRICT LOGIC: Prevent transfer if NOT serviceable (phải được kiểm định Tốt thì mới được chuyển)
+    require(item.lastInspectionStatus == BaseItem.InspectionStatus.Serviceable, "NOT_SERVICEABLE_YET");
 
     item.location = destination;
     item.updatedAt = block.timestamp;
     item.lastUpdatedBy = msg.sender;
+    if (_isAircraftDestination(destination)) {
+      item.isFinalized = true;
+    }
 
     item.history.push(BaseItem.AuditRecord({
       timestamp: block.timestamp,
@@ -140,6 +161,7 @@ contract AviationStorage is AviationAccessControl {
     require(bytes(newLocation).length != 0, "EMPTY_LOCATION");
 
     BaseItem.Item storage item = _items[itemId];
+    require(!item.isFinalized, "ITEM_FINALIZED");
     item.location = newLocation;
     item.updatedAt = block.timestamp;
     item.lastUpdatedBy = msg.sender;
@@ -164,6 +186,7 @@ contract AviationStorage is AviationAccessControl {
     require(status != BaseItem.InspectionStatus.Unknown, "INVALID_STATUS");
 
     BaseItem.Item storage item = _items[itemId];
+    require(!item.isFinalized, "ITEM_FINALIZED");
     item.lastInspectionStatus = status;
     item.lastInspectionNotesHash = notesHash;
     item.updatedAt = block.timestamp;

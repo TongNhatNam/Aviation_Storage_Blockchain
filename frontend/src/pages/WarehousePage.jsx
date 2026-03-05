@@ -8,7 +8,16 @@ export function WarehousePage({ wallet, roles, api }) {
 
   return (
     <div className="avi-grid">
-      <SectionCard title="Kho hàng không" subtitle="Nghiệp vụ nhập/xuất/cộng kho vật tư & phụ tùng">
+      <SectionCard
+        title={
+          <span className="avi-pageTitle">
+            <span className="avi-pageIcon avi-pageIcon--warehouse" aria-hidden="true" />
+            <span>Kho hàng không</span>
+          </span>
+        }
+        subtitle="Nghiệp vụ nhập/xuất/cộng kho vật tư & phụ tùng"
+        right={<img className="avi-pageBadge" src="/role_warehouse.png" alt="Warehouse" />}
+      >
         {!ready ? (
           <div className="avi-alert avi-alert--warn">Hãy connect MetaMask và chuyển sang Ganache 1337.</div>
         ) : null}

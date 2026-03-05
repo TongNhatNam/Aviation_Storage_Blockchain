@@ -27,16 +27,20 @@ export function AviationShell({ wallet, roles, library, onLibraryChange, childre
 
         <nav className="avi-nav">
           <HashLink className="avi-navLink" to="/">
-            Tổng quan
+            <span className="avi-navIcon avi-navIcon--home" aria-hidden="true" />
+            <span>Tổng quan</span>
           </HashLink>
           <HashLink className="avi-navLink" to="/warehouse">
-            Kho hàng
+            <span className="avi-navIcon avi-navIcon--warehouse" aria-hidden="true" />
+            <span>Kho hàng</span>
           </HashLink>
           <HashLink className="avi-navLink" to="/engineer">
-            Kỹ sư
+            <span className="avi-navIcon avi-navIcon--engineer" aria-hidden="true" />
+            <span>Kỹ sư</span>
           </HashLink>
           <HashLink className="avi-navLink" to="/admin">
-            Quản trị Radar
+            <span className="avi-navIcon avi-navIcon--admin" aria-hidden="true" />
+            <span>Quản trị Radar</span>
           </HashLink>
         </nav>
 

@@ -40,6 +40,12 @@ async function sendTransaction({ publicClient, from, to, data, value }) {
       method: "eth_estimateGas",
       params: [tx],
     });
+    const estimated = hexToBigInt(tx.gas);
+    const padded = (estimated * 12n) / 10n + 50_000n;
+    const minGas = 500_000n;
+    const maxGas = 6_000_000n;
+    const safeGas = padded < minGas ? minGas : padded > maxGas ? maxGas : padded;
+    tx.gas = numberToHex(safeGas);
   } catch {
     tx.gas = numberToHex(6_000_000);
   }
@@ -245,6 +251,8 @@ async function main() {
     }),
   });
 
+
+
   // 5. Kho điều chuyển khối điện tử lên máy bay VN-A899
   await sendTransaction({
     publicClient,
@@ -253,7 +261,7 @@ async function main() {
     data: encodeFunctionData({
       abi: artifact.abi,
       functionName: "transferItem",
-      args: ["AVIONICS-A350-SN102", "Aircraft VN-A899"],
+      args: ["AVIONICS-A350-SN102", "Aircraft VN-A899 (A350)"],
     }),
   });
 

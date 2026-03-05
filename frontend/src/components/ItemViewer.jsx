@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { formatError } from "../utils/error.js";
+import { isItemLocked } from "../utils/itemState.js";
 
 function formatTimestamp(value) {
   const n = Number(value);
@@ -95,6 +96,17 @@ export function ItemViewer({ api }) {
                   <div><small style={{ color: 'rgba(255,255,255,0.5)' }}>Serial Number (SN):</small> <br /><strong>{lookupResult.serialNumber}</strong></div>
                   <div><small style={{ color: 'rgba(255,255,255,0.5)' }}>Vị trí hiện tại:</small> <br /><span>{lookupResult.location}</span></div>
                   <div>
+                    <small style={{ color: 'rgba(255,255,255,0.5)' }}>Trạng thái:</small> <br />
+                    <strong style={{ color: isItemLocked(lookupResult) ? 'var(--color-danger)' : 'var(--color-success)' }}>
+                      {isItemLocked(lookupResult) ? 'Locked (đã gửi lên máy bay)' : 'Active'}
+                    </strong>
+                    {isItemLocked(lookupResult) && typeof lookupResult.isFinalized !== "boolean" ? (
+                      <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.82rem', marginTop: 4 }}>
+                        Đang xác định trạng thái Locked theo vị trí (location).
+                      </div>
+                    ) : null}
+                  </div>
+                  <div>
                     <small style={{ color: 'rgba(255,255,255,0.5)' }}>Tình trạng Kỹ thuật:</small> <br />
                     <strong style={{ color: Number(lookupResult.lastInspectionStatus) === 2 ? 'var(--color-danger)' : 'var(--color-success)' }}>
                       {formatInspectionStatus(lookupResult.lastInspectionStatus)}
@@ -157,6 +169,7 @@ export function ItemViewer({ api }) {
                   <th style={{ textAlign: "left", borderBottom: "1px solid rgba(255,255,255,0.2)", padding: '12px 8px', color: 'rgba(255,255,255,0.6)' }}>Serial (SN)</th>
                   <th style={{ textAlign: "left", borderBottom: "1px solid rgba(255,255,255,0.2)", padding: '12px 8px', color: 'rgba(255,255,255,0.6)' }}>Code</th>
                   <th style={{ textAlign: "left", borderBottom: "1px solid rgba(255,255,255,0.2)", padding: '12px 8px', color: 'rgba(255,255,255,0.6)' }}>Vị trí</th>
+                  <th style={{ textAlign: "left", borderBottom: "1px solid rgba(255,255,255,0.2)", padding: '12px 8px', color: 'rgba(255,255,255,0.6)' }}>State</th>
                   <th style={{ textAlign: "left", borderBottom: "1px solid rgba(255,255,255,0.2)", padding: '12px 8px', color: 'rgba(255,255,255,0.6)' }}>Tình trạng</th>
                 </tr>
               </thead>
@@ -169,6 +182,9 @@ export function ItemViewer({ api }) {
                       <td style={{ borderBottom: "1px solid rgba(255,255,255,0.05)", padding: '12px 8px', color: 'var(--color-primary)' }}>{item.serialNumber}</td>
                       <td style={{ borderBottom: "1px solid rgba(255,255,255,0.05)", padding: '12px 8px', fontSize: '0.85em', opacity: 0.7 }}>{item.code}</td>
                       <td style={{ borderBottom: "1px solid rgba(255,255,255,0.05)", padding: '12px 8px' }}>{item.location}</td>
+                      <td style={{ borderBottom: "1px solid rgba(255,255,255,0.05)", padding: '12px 8px' }}>
+                        {isItemLocked(item) ? "Locked" : "Active"}
+                      </td>
                       <td style={{ borderBottom: "1px solid rgba(255,255,255,0.05)", padding: '12px 8px', color: isAOG ? 'var(--color-danger)' : 'inherit' }}>
                         {formatInspectionStatus(item.lastInspectionStatus)}
                       </td>

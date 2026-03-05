@@ -29,6 +29,7 @@ async function main() {
   const server = ganache.server({
     wallet: { mnemonic, totalAccounts: 10 },
     chain: { chainId: 1337 },
+    miner: { blockGasLimit: 12_000_000 },
     logging: { quiet: false },
   });
 
@@ -60,4 +61,3 @@ main().catch((e) => {
   console.error(e);
   process.exitCode = 1;
 });
-
