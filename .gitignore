@@ -1,0 +1,28 @@
+# Node modules
+node_modules/
+frontend/node_modules/
+
+# Hardhat files
+cache/
+artifacts/
+
+# Coverage
+coverage/
+coverage.json
+
+# Environment variables
+.env
+frontend/.env
+
+# Build outputs
+frontend/dist/
+frontend/build/
+
+# IDE files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
