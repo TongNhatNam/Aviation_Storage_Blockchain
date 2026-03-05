@@ -82,7 +82,7 @@ npm run dev
   Kiểm tra xem MetaMask đã chuyển sang mạng **Ganache (1337)** chưa, rồi thử chạy lại lệnh `npm run deploy:ganache` và `npm run seed:ganache`.
 - **Lỗi bị chiếm cổng (Port in use)**:  
   Ganache mặc định chạy ở cổng `8787`. Nếu cổng này bị ứng dụng khác sử dụng, bạn có thể chỉnh môi trường:
-  - PowerShell: `$env:GANACHE_PORT=8788; npm run dev`
+  - PowerShell: `$env:GANACHE_PORT=8787; npm run dev`
   - Đừng quên cập nhật cả cổng trong tệp `frontend/.env` nếu đổi cấu hình. Mặc định là `1337` đối với Chain ID và `8787` đối với port. 
 
 ## Scripts hữu ích
