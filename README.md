@@ -107,4 +107,5 @@ npm run seed:ganache
 - Tạo Pull Request.
 
 ## Liên hệ
-- Phân phối nhóm: `Aviation Blockchain Team`
+- **Email**: tongnhatnam1810@gmail.com
+- **GitHub**: [https://github.com/TongNhatNam](https://github.com/TongNhatNam)
