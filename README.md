@@ -1,4 +1,4 @@
-# Aviation Blockchain Storage (Demo)
+# Aviation Storage Blockchain Storage 
 Ứng dụng phi tập trung (DApp) quản lý kho vật tư và phụ tùng hàng không, kết hợp quy trình kiểm định chuyên nghiệm, chạy trên nền tảng blockchain cục bộ (Ganache) với giao diện tương tác qua MetaMask.
 
 ## Tính năng chính
