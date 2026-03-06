@@ -103,7 +103,7 @@ export function AdminPage({ wallet, roles, contractAddress, onRoleChanged }) {
           </span>
         }
         subtitle="Quản lý quyền và chuyển Admin"
-        right={<img className="avi-pageBadge" src="/role_admin.png" alt="Admin" />}
+        right={<img className="avi-pageBadge" src="/role_admin.png" alt="Admin" style={{ width: 120, height: 120 }} />}
       >
         {!ready ? <div className="avi-alert avi-alert--warn">Hãy connect MetaMask và chuyển sang Ganache 1337.</div> : null}
         {ready && !allowed ? (

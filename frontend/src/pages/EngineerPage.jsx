@@ -16,7 +16,7 @@ export function EngineerPage({ wallet, roles, api }) {
           </span>
         }
         subtitle="Cập nhật kiểm định cho vật tư/phụ tùng theo chuẩn bảo trì"
-        right={<img className="avi-pageBadge" src="/role_engineer.png" alt="Engineer" />}
+        right={<img className="avi-pageBadge" src="/role_engineer.png" alt="Engineer" style={{ width: 120, height: 120 }} />}
       >
         {!ready ? (
           <div className="avi-alert avi-alert--warn">Hãy connect MetaMask và chuyển sang Ganache 1337.</div>

@@ -16,7 +16,7 @@ export function WarehousePage({ wallet, roles, api }) {
           </span>
         }
         subtitle="Nghiệp vụ nhập/xuất/cộng kho vật tư & phụ tùng"
-        right={<img className="avi-pageBadge" src="/role_warehouse.png" alt="Warehouse" />}
+        right={<img className="avi-pageBadge" src="/role_warehouse.png" alt="Warehouse" style={{ width: 120, height: 120 }} />}
       >
         {!ready ? (
           <div className="avi-alert avi-alert--warn">Hãy connect MetaMask và chuyển sang Ganache 1337.</div>

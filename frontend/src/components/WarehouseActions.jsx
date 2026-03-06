@@ -300,9 +300,9 @@ export function WarehouseActions({ api, disabled, onActionDone }) {
         <SectionCard title="Điều chuyển / Lắp đặt (Transfer)" subtitle="Chỉ hiển thị các vật tư/phụ tùng đã được Kỹ sư xác nhận (Serviceable) trong kho.">
           <div className="avi-formGrid">
             {loadingItems ? (
-              <div style={{ color: "rgba(255,255,255,0.5)" }}>Đang tải danh sách kho...</div>
+              <div className="avi-span2" style={{ color: "rgba(255,255,255,0.5)", fontStyle: "italic", padding: "12px", background: "rgba(255,255,255,0.05)", borderRadius: "8px" }}>Đang tải danh sách kho...</div>
             ) : serviceableItems.length === 0 ? (
-              <div style={{ color: "var(--color-danger)" }}>Không có thiết bị Serviceable nào trong kho. Hãy chờ Kỹ sư thẩm định!</div>
+              <div className="avi-span2" style={{ color: "var(--color-danger)", fontStyle: "italic", padding: "12px", background: "rgba(255, 51, 102, 0.05)", borderRadius: "8px" }}>Không có thiết bị Serviceable nào trong kho. Hãy chờ Kỹ sư thẩm định!</div>
             ) : (
               <select
                 value={transferForm.code}
@@ -349,9 +349,9 @@ export function WarehouseActions({ api, disabled, onActionDone }) {
         <SectionCard title="Cập nhật vị trí Lưu trữ" subtitle="Thay đổi ô kệ/dock cho mọi tài sản đang nằm trong Warehouse">
           <div className="avi-formGrid">
             {loadingItems ? (
-              <div style={{ color: "rgba(255,255,255,0.5)" }}>Đang tải danh sách kho...</div>
+              <div className="avi-span2" style={{ color: "rgba(255,255,255,0.5)", fontStyle: "italic", padding: "12px", background: "rgba(255,255,255,0.05)", borderRadius: "8px" }}>Đang tải danh sách kho...</div>
             ) : items.length === 0 ? (
-              <div style={{ color: "rgba(255,255,255,0.5)" }}>Kho đang trống.</div>
+              <div className="avi-span2" style={{ color: "rgba(255,255,255,0.5)", fontStyle: "italic", padding: "12px", background: "rgba(255,255,255,0.05)", borderRadius: "8px" }}>Kho đang trống.</div>
             ) : (
               <select
                 value={updateLocationForm.code}
