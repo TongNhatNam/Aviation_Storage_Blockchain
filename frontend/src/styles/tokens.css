@@ -1,0 +1,17 @@
+:root {
+  --bg-dark: #0C162D;
+  --bg-navy: #182848;
+  --bg-charcoal: #1F2E4A;
+  --color-radar-green: #00FF66;
+  --color-safety-orange: #FF9900;
+  --color-aviation-blue: #0066FF;
+  --color-danger-red: #FF3366;
+
+  --glass-bg: rgba(14, 21, 40, 0.65);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-hover: rgba(255, 255, 255, 0.12);
+
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: 'Space Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+

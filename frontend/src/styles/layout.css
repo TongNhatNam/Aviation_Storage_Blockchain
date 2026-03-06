@@ -1,0 +1,117 @@
+.avi-layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  grid-template-rows: 1fr 28px;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.avi-sidebar {
+  grid-column: 1 / 2;
+  grid-row: 1 / 3;
+  background: rgba(10, 17, 40, 0.9);
+  border-right: 1px solid var(--glass-border);
+  display: flex;
+  flex-direction: column;
+  padding: 24px 16px;
+  gap: 24px;
+  z-index: 50;
+  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.4);
+}
+
+.avi-main-wrapper {
+  grid-column: 2 / 3;
+  grid-row: 1 / 2;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.avi-main {
+  flex: 1;
+  padding: 24px 32px 60px;
+  max-width: none;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+.avi-statusbar {
+  grid-column: 2 / 3;
+  grid-row: 2 / 3;
+  background: rgba(5, 8, 20, 0.95);
+  border-top: 1px solid var(--glass-border);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  font-size: 10px;
+  font-family: var(--font-mono);
+  color: rgba(255, 255, 255, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  z-index: 50;
+  gap: 16px;
+}
+
+.avi-statusbar-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.avi-statusbar-item::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--color-radar-green);
+}
+
+.avi-statusbar-item.error::before {
+  background-color: var(--color-danger-red);
+}
+
+.avi-statusbar-item.warn::before {
+  background-color: var(--color-safety-orange);
+}
+
+.avi-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.avi-columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
+  gap: 24px;
+  align-items: start;
+}
+
+.avi-col {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.avi-inline {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.avi-formGrid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1fr 1fr;
+}
+
+.avi-span2 {
+  grid-column: 1 / -1;
+}

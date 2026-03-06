@@ -9,9 +9,9 @@ function shortAddress(value) {
 
 export function AviationShell({ wallet, roles, library, onLibraryChange, children }) {
   const roleLabels = [];
-  if (roles?.isAdmin) roleLabels.push({ label: "Admin", tone: "info" });
-  if (roles?.isWarehouse) roleLabels.push({ label: "Warehouse", tone: "ok" });
-  if (roles?.isEngineer) roleLabels.push({ label: "Engineer", tone: "warn" });
+  if (roles?.isAdmin) roleLabels.push({ label: "Quản trị", tone: "info" });
+  if (roles?.isWarehouse) roleLabels.push({ label: "Kho hàng", tone: "ok" });
+  if (roles?.isEngineer) roleLabels.push({ label: "Kỹ sư", tone: "warn" });
   if (!roleLabels.length && wallet?.account) roleLabels.push({ label: "No role", tone: "muted" });
   const isConnected = Boolean(wallet?.account);
   const isGanache = wallet?.chainId === 1337;
@@ -29,6 +29,10 @@ export function AviationShell({ wallet, roles, library, onLibraryChange, childre
           <HashLink className="avi-navLink" to="/">
             <span className="avi-navIcon avi-navIcon--home" aria-hidden="true" />
             <span>Tổng quan</span>
+          </HashLink>
+          <HashLink className="avi-navLink" to="/dashboard">
+            <span className="avi-navIcon avi-navIcon--dashboard" aria-hidden="true" />
+            <span>Thống kê</span>
           </HashLink>
           <HashLink className="avi-navLink" to="/warehouse">
             <span className="avi-navIcon avi-navIcon--warehouse" aria-hidden="true" />
@@ -70,10 +74,10 @@ export function AviationShell({ wallet, roles, library, onLibraryChange, childre
               <option value="web3">Library: Web3</option>
             </select>
             <button className="avi-btn" onClick={wallet?.connect} disabled={!wallet?.isAvailable}>
-              Connect Wallet
+              Kết nối Ví
             </button>
             <button className="avi-btn avi-btn--primary" onClick={wallet?.connectAndSwitchGanache} disabled={!wallet?.isAvailable}>
-              Switch to Ganache
+              Chuyển sang Ganache
             </button>
           </div>
         </div>
@@ -99,12 +103,12 @@ export function AviationShell({ wallet, roles, library, onLibraryChange, childre
       </div>
 
       <footer className="avi-statusbar">
-        <div className="avi-statusbar-item ok">SYSTEM: ONLINE</div>
+        <div className="avi-statusbar-item ok">HỆ THỐNG: ONLINE</div>
         <div className={`avi-statusbar-item ${isConnected ? "ok" : "warn"}`}>
-          LINK: {isConnected ? "ESTABLISHED" : "DISCONNECTED"}
+          KẾT NỐI: {isConnected ? "ĐÃ KẾT NỐI" : "ĐÃ NGẮT"}
         </div>
         <div className={`avi-statusbar-item ${isGanache ? "ok" : "error"}`}>
-          NODE: {wallet?.chainId ?? "N/A"}
+          MẠNG: {wallet?.chainId ?? "N/A"}
         </div>
       </footer>
     </div>

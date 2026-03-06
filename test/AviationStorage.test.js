@@ -18,6 +18,53 @@ async function deployFixture() {
 }
 
 test.describe("AviationStorage", () => {
+  test("admin cấu hình danh mục và policy (master data + enforcement)", async () => {
+    const { viem, aviationStorage, admin, warehouse, engineer } = await deployFixture();
+
+    await aviationStorage.write.setWarehouseLocation(["HAN-WH-A1", true], { account: admin.account });
+    await aviationStorage.write.setWarehouseLocation(["SGN-WH-B3", true], { account: admin.account });
+
+    const locations = await aviationStorage.read.getWarehouseLocationsEnabled();
+    assert.equal(locations.includes("HAN-WH-A1"), true);
+
+    await aviationStorage.write.setDestination(["Hangar 1 - HAN", 0, true], { account: admin.account });
+    await aviationStorage.write.setDestination(["Aircraft VN-A899 (A350)", 1, true], { account: admin.account });
+
+    const aircrafts = await aviationStorage.read.getAircraftDestinationsEnabled();
+    assert.equal(aircrafts.includes("Aircraft VN-A899 (A350)"), true);
+
+    await aviationStorage.write.setPolicies([true, true, true, true, true], { account: admin.account });
+
+    await viem.assertions.revertWith(
+      aviationStorage.write.registerItem(["X", "PN", "SN", "Name", "UNKNOWN-LOC", ""], { account: warehouse.account }),
+      "LOCATION_NOT_ALLOWED"
+    );
+
+    await viem.assertions.revertWith(
+      aviationStorage.write.registerItem(["X", "PN", "SN", "Name", "HAN-WH-A1", ""], { account: warehouse.account }),
+      "METADATA_REQUIRED"
+    );
+
+    await aviationStorage.write.registerItem(["X", "PN", "SN", "Name", "HAN-WH-A1", "ipfs://meta"], { account: warehouse.account });
+
+    await viem.assertions.revertWith(
+      aviationStorage.write.inspectItem(["X", 1, ""], { account: engineer.account }),
+      "NOTES_REQUIRED"
+    );
+
+    await aviationStorage.write.inspectItem(["X", 1, "ipfs://notes"], { account: engineer.account });
+
+    await viem.assertions.revertWith(
+      aviationStorage.write.transferItem(["X", "UNKNOWN-DEST"], { account: warehouse.account }),
+      "DESTINATION_NOT_ALLOWED"
+    );
+
+    await aviationStorage.write.transferItem(["X", "Aircraft VN-A899 (A350)"], { account: warehouse.account });
+
+    const item = await aviationStorage.read.getItem(["X"]);
+    assert.equal(item.isFinalized, true);
+  });
+
   test("cho phép warehouse đăng ký item", async () => {
     const { viem, aviationStorage, warehouse } = await deployFixture();
 

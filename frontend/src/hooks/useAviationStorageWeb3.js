@@ -2,6 +2,7 @@ import Web3 from "web3";
 import abi from "../contracts/AviationStorage.abi.json";
 import deployedAddresses from "../contracts/deployedAddresses.json";
 import { formatError } from "../utils/error.js";
+import { mapWithConcurrency } from "../utils/async.js";
 
 function getContractAddress(chainId) {
   if (!chainId) return undefined;
@@ -139,16 +140,58 @@ export function useAviationStorageWeb3({ chainId }) {
       const countStr = await contract.methods.itemCount().call();
       const total = Number(countStr);
       const items = [];
+      const n = Math.min(total, limit);
+      const indices = Array.from({ length: n }, (_, i) => i);
+      const itemIds = await mapWithConcurrency(indices, 8, (i) => contract.methods.itemIdAt(i).call());
+      const itemRaws = await mapWithConcurrency(itemIds, 8, (itemId) => contract.methods.getItemById(itemId).call());
 
-      for (let i = 0; i < Math.min(total, limit); i += 1) {
-        const itemId = await contract.methods.itemIdAt(i).call();
-        const itemRaw = await contract.methods.getItemById(itemId).call();
-        items.push({ itemId, item: itemRaw });
+      for (let i = 0; i < itemIds.length; i += 1) {
+        items.push({ itemId: itemIds[i], item: itemRaws[i] });
       }
 
       return { total, items };
     } catch (e) {
       throw new Error(formatError(e));
+    }
+  }
+
+  async function listWarehouseLocations() {
+    try {
+      const { contract } = await getContractAndWeb3();
+      if (!contract.methods.getWarehouseLocationsEnabled) return { locations: [] };
+      const locations = await contract.methods.getWarehouseLocationsEnabled().call();
+      return { locations: Array.isArray(locations) ? locations : [] };
+    } catch (e) {
+      return { locations: [], error: formatError(e) };
+    }
+  }
+
+  async function listTransferDestinations() {
+    try {
+      const { contract } = await getContractAndWeb3();
+      if (!contract.methods.getTransferDestinationsEnabled) return { destinations: [] };
+      const destinations = await contract.methods.getTransferDestinationsEnabled().call();
+      return { destinations: Array.isArray(destinations) ? destinations : [] };
+    } catch (e) {
+      return { destinations: [], error: formatError(e) };
+    }
+  }
+
+  async function getPolicies() {
+    try {
+      const { contract } = await getContractAndWeb3();
+      if (!contract.methods.getPolicies) return { policies: undefined };
+      const result = await contract.methods.getPolicies().call();
+      const policies = {
+        requireLocationWhitelisted: Boolean(result?.[0]),
+        requireDestinationWhitelisted: Boolean(result?.[1]),
+        requireMetadataOnRegister: Boolean(result?.[2]),
+        requireNotesOnInspect: Boolean(result?.[3]),
+        lockOnAircraftDestination: Boolean(result?.[4]),
+      };
+      return { policies };
+    } catch (e) {
+      return { policies: undefined, error: formatError(e) };
     }
   }
 
@@ -161,5 +204,8 @@ export function useAviationStorageWeb3({ chainId }) {
     inspectItem,
     getItem,
     listItems,
+    listWarehouseLocations,
+    listTransferDestinations,
+    getPolicies,
   };
 }

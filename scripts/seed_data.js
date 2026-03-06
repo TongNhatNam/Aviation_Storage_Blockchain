@@ -186,6 +186,52 @@ async function main() {
     }),
   });
 
+  const warehouseLocations = ["HAN-WH-A1", "HAN-WH-A2", "HAN-WH-B1", "SGN-WH-B3", "SGN-WH-C2", "DAD-WH-LM1"];
+  for (const loc of warehouseLocations) {
+    await sendTransaction({
+      publicClient,
+      from: adminAccount,
+      to: aviationStorageAddress,
+      data: encodeFunctionData({
+        abi: artifact.abi,
+        functionName: "setWarehouseLocation",
+        args: [loc, true],
+      }),
+    });
+  }
+
+  const destinations = [
+    { value: "Aircraft VN-A899 (A350)", kind: 1 },
+    { value: "Aircraft VN-A321 (A321neo)", kind: 1 },
+    { value: "Aircraft VN-A789 (B787)", kind: 1 },
+    { value: "Hangar 1 - HAN", kind: 0 },
+    { value: "Hangar 2 - SGN", kind: 0 },
+    { value: "Line Maintenance - DAD", kind: 0 },
+  ];
+  for (const d of destinations) {
+    await sendTransaction({
+      publicClient,
+      from: adminAccount,
+      to: aviationStorageAddress,
+      data: encodeFunctionData({
+        abi: artifact.abi,
+        functionName: "setDestination",
+        args: [d.value, d.kind, true],
+      }),
+    });
+  }
+
+  await sendTransaction({
+    publicClient,
+    from: adminAccount,
+    to: aviationStorageAddress,
+    data: encodeFunctionData({
+      abi: artifact.abi,
+      functionName: "setPolicies",
+      args: [true, true, true, true, true],
+    }),
+  });
+
   async function ensureItem({ code, partNumber, serialNumber, name, location, metadataHash }) {
     const exists = await publicClient.readContract({
       address: aviationStorageAddress,

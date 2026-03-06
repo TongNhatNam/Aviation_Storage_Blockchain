@@ -1,10 +1,11 @@
 import { useMemo, useState, useEffect } from "react";
+import { QRCodeSVG } from 'qrcode.react';
 import { SectionCard } from "./SectionCard.jsx";
+import { TransactionInfo } from "./TransactionInfo.jsx";
 import { formatError } from "../utils/error.js";
 import { isItemLocked } from "../utils/itemState.js";
 
-// Common pre-defined aircraft/hangars for dropdown demo
-const PREDEFINED_DESTINATIONS = [
+const FALLBACK_DESTINATIONS = [
   "Aircraft VN-A899 (A350)",
   "Aircraft VN-A321 (A321neo)",
   "Aircraft VN-A789 (B787)",
@@ -13,7 +14,16 @@ const PREDEFINED_DESTINATIONS = [
   "Line Maintenance - DAD"
 ];
 
-const PREDEFINED_WAREHOUSE_LOCATIONS = [
+const CERTIFICATE_TYPES = [
+  { value: "CO", label: "C/O (Giấy chứng nhận xuất xứ)" },
+  { value: "CQ", label: "C/Q (Giấy chứng nhận chất lượng)" },
+  { value: "EASA_FORM1", label: "EASA Form 1" },
+  { value: "FAA_8130_3", label: "FAA Form 8130-3" },
+  { value: "JAA_FORM1", label: "JAA Form 1" },
+  { value: "OTHER", label: "Khác" }
+];
+
+const FALLBACK_WAREHOUSE_LOCATIONS = [
   "HAN-WH-A1",
   "HAN-WH-A2",
   "HAN-WH-B1",
@@ -32,6 +42,11 @@ function formatInspectionStatus(value) {
 export function WarehouseActions({ api, disabled, onActionDone }) {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState(undefined);
+  const [txReceipt, setTxReceipt] = useState(undefined);
+
+  const [warehouseLocations, setWarehouseLocations] = useState([]);
+  const [transferDestinations, setTransferDestinations] = useState([]);
+  const [loadingCatalog, setLoadingCatalog] = useState(false);
 
   const [registerForm, setRegisterForm] = useState({
     code: "",
@@ -39,6 +54,7 @@ export function WarehouseActions({ api, disabled, onActionDone }) {
     serialNumber: "",
     name: "",
     location: "",
+    certificateType: "CO",
     metadataHash: "",
   });
 
@@ -53,6 +69,7 @@ export function WarehouseActions({ api, disabled, onActionDone }) {
   });
 
   const canUseApi = useMemo(() => Boolean(api?.isDeployedOnThisChain) && !disabled, [api, disabled]);
+  const hasContract = useMemo(() => Boolean(api?.isDeployedOnThisChain), [api]);
 
   const [activeTab, setActiveTab] = useState("REGISTER"); // REGISTER, TRANSFER, UPDATE
   const [items, setItems] = useState([]);
@@ -78,15 +95,41 @@ export function WarehouseActions({ api, disabled, onActionDone }) {
     }
   }, [activeTab, canUseApi]);
 
+  useEffect(() => {
+    if (!hasContract) return;
+    let cancelled = false;
+    setLoadingCatalog(true);
+    Promise.all([api?.listWarehouseLocations?.(), api?.listTransferDestinations?.()])
+      .then(([locRes, destRes]) => {
+        if (cancelled) return;
+        const locations = locRes?.locations?.length ? locRes.locations : FALLBACK_WAREHOUSE_LOCATIONS;
+        const destinations = destRes?.destinations?.length ? destRes.destinations : FALLBACK_DESTINATIONS;
+        setWarehouseLocations(locations);
+        setTransferDestinations(destinations);
+        setRegisterForm((s) => (s.location || !locations?.[0] ? s : { ...s, location: locations[0] }));
+        setTransferForm((s) => (s.destination || !destinations?.[0] ? s : { ...s, destination: destinations[0] }));
+      })
+      .catch(() => { })
+      .finally(() => {
+        if (cancelled) return;
+        setLoadingCatalog(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [api, hasContract]);
+
   async function run(action) {
     setMessage(undefined);
+    setTxReceipt(undefined);
     setBusy(true);
     try {
-      await action();
+      const receipt = await action();
       setMessage("OK");
+      setTxReceipt(receipt);
       onActionDone?.();
       if (activeTab !== "REGISTER") {
-        await fetchItems(); // refresh list after action
+        await fetchItems();
       }
     } catch (e) {
       setMessage(formatError(e));
@@ -101,6 +144,10 @@ export function WarehouseActions({ api, disabled, onActionDone }) {
       const updated = { ...prev, [field]: value };
       if (updated.partNumber && updated.serialNumber) {
         updated.code = `${updated.partNumber}-${updated.serialNumber}`;
+        // Auto-generate IPFS hash
+        const certType = updated.certificateType || 'CO';
+        const timestamp = Date.now().toString(36);
+        updated.metadataHash = `ipfs://Qm${certType}-${updated.partNumber}-${updated.serialNumber}-${timestamp}`;
       }
       return updated;
     });
@@ -135,18 +182,18 @@ export function WarehouseActions({ api, disabled, onActionDone }) {
         <SectionCard title="Nhập kho (Digital Twin)" subtitle="Đăng ký phụ tùng mới, chờ kỹ sư thẩm định.">
           <div className="avi-formGrid">
             <input
-              placeholder="Part Number (PN) - VD: TIRE-A320"
+              placeholder="Mã PN (VD: TIRE-A320)"
               value={registerForm.partNumber}
               onChange={(e) => handlePnSnChange("partNumber", e.target.value)}
             />
             <input
-              placeholder="Serial Number (SN) - VD: SN001"
+              placeholder="Mã SN (VD: SN001)"
               value={registerForm.serialNumber}
               onChange={(e) => handlePnSnChange("serialNumber", e.target.value)}
             />
             <input
               className="avi-span2"
-              placeholder="Code (Hệ thống tự tạo từ PN và SN)"
+              placeholder="Mã Code (Tự tạo từ PN và SN)"
               value={registerForm.code}
               disabled
               style={{ opacity: 0.7, cursor: 'not-allowed' }}
@@ -156,25 +203,56 @@ export function WarehouseActions({ api, disabled, onActionDone }) {
               value={registerForm.name}
               onChange={(e) => setRegisterForm((s) => ({ ...s, name: e.target.value }))}
             />
+            {warehouseLocations?.length ? (
+              <select
+                value={registerForm.location}
+                onChange={(e) => setRegisterForm((s) => ({ ...s, location: e.target.value }))}
+                style={{ cursor: "pointer" }}
+                disabled={loadingCatalog}
+              >
+                <option value="" disabled>
+                  --- Chọn vị trí Kho ban đầu ---
+                </option>
+                {warehouseLocations.map((loc) => (
+                  <option key={loc} value={loc} style={{ color: "#000" }}>
+                    {loc}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <input
+                placeholder="Vị trí Kho ban đầu"
+                value={registerForm.location}
+                onChange={(e) => setRegisterForm((s) => ({ ...s, location: e.target.value }))}
+              />
+            )}
             <select
-              value={registerForm.location}
-              onChange={(e) => setRegisterForm((s) => ({ ...s, location: e.target.value }))}
+              value={registerForm.certificateType}
+              onChange={(e) => {
+                const certType = e.target.value;
+                setRegisterForm((s) => {
+                  const updated = { ...s, certificateType: certType };
+                  // Re-generate IPFS hash when cert type changes
+                  if (updated.partNumber && updated.serialNumber) {
+                    const timestamp = Date.now().toString(36);
+                    updated.metadataHash = `ipfs://Qm${certType}-${updated.partNumber}-${updated.serialNumber}-${timestamp}`;
+                  }
+                  return updated;
+                });
+              }}
               style={{ cursor: "pointer" }}
             >
-              <option value="" disabled>
-                --- Chọn vị trí Kho ban đầu ---
-              </option>
-              {PREDEFINED_WAREHOUSE_LOCATIONS.map((loc) => (
-                <option key={loc} value={loc} style={{ color: "#000" }}>
-                  {loc}
+              {CERTIFICATE_TYPES.map((cert) => (
+                <option key={cert.value} value={cert.value} style={{ color: "#000" }}>
+                  {cert.label}
                 </option>
               ))}
             </select>
             <input
-              className="avi-span2"
-              placeholder="Giấy tờ C/O, C/Q hoặc EASA Form 1 (IPFS Hash)"
+              placeholder="IPFS Hash (Tự tạo)"
               value={registerForm.metadataHash}
               onChange={(e) => setRegisterForm((s) => ({ ...s, metadataHash: e.target.value }))}
+              style={{ opacity: 0.8 }}
             />
           </div>
           <div className="avi-inline" style={{ marginTop: 10 }}>
@@ -183,6 +261,38 @@ export function WarehouseActions({ api, disabled, onActionDone }) {
             </button>
             {message ? <div className={`avi-msg ${message === "OK" ? "avi-msg--ok" : "avi-msg--err"}`}>{message}</div> : null}
           </div>
+          <TransactionInfo receipt={txReceipt} />
+          {message === "OK" && registerForm.code && (
+            <div style={{ marginTop: 16 }}>
+              <div style={{ color: 'var(--color-success)', marginBottom: 12, fontWeight: 'bold' }}>✅ Đăng ký thành công! QR Code của phụ tùng:</div>
+              <div className="avi-card" style={{ background: '#fff', padding: 20, textAlign: 'center', maxWidth: 300 }}>
+                <div style={{ marginBottom: 12 }}>
+                  <QRCodeSVG
+                    value={(() => {
+                      const baseUrl = `${window.location.origin}${window.location.pathname}`;
+                      return `${baseUrl}#/?lookup=${encodeURIComponent(registerForm.code)}`;
+                    })()}
+                    size={200}
+                    level="H"
+                    includeMargin={true}
+                  />
+                </div>
+                <div style={{ color: '#000', fontWeight: 'bold', fontSize: '0.9rem', marginBottom: 8 }}>{registerForm.code}</div>
+                <button
+                  className="avi-btn avi-btn--primary"
+                  onClick={() => {
+                    const baseUrl = `${window.location.origin}${window.location.pathname}`;
+                    const url = `${baseUrl}#/?lookup=${encodeURIComponent(registerForm.code)}`;
+                    navigator.clipboard.writeText(url);
+                    alert('✅ Đã copy link tra cứu!\n\n' + url + '\n\nPaste vào browser để xem kết quả.');
+                  }}
+                  style={{ width: '100%', marginTop: 8 }}
+                >
+                  📋 Copy Link Tra Cứu
+                </button>
+              </div>
+            </div>
+          )}
         </SectionCard>
       )}
 
@@ -214,9 +324,10 @@ export function WarehouseActions({ api, disabled, onActionDone }) {
               onChange={(e) => setTransferForm((s) => ({ ...s, destination: e.target.value }))}
               className="avi-span2"
               style={{ cursor: 'pointer' }}
+              disabled={loadingCatalog}
             >
               <option value="" disabled>--- Chọn điểm đến (Máy bay/Xưởng) ---</option>
-              {PREDEFINED_DESTINATIONS.map(dest => (
+              {transferDestinations.map(dest => (
                 <option key={dest} value={dest} style={{ color: '#000' }}>{dest}</option>
               ))}
             </select>
@@ -230,6 +341,7 @@ export function WarehouseActions({ api, disabled, onActionDone }) {
             </button>
             {message ? <div className={`avi-msg ${message === "OK" ? "avi-msg--ok" : "avi-msg--err"}`}>{message}</div> : null}
           </div>
+          <TransactionInfo receipt={txReceipt} />
         </SectionCard>
       )}
 
@@ -275,6 +387,7 @@ export function WarehouseActions({ api, disabled, onActionDone }) {
             </button>
             {message ? <div className={`avi-msg ${message === "OK" ? "avi-msg--ok" : "avi-msg--err"}`}>{message}</div> : null}
           </div>
+          <TransactionInfo receipt={txReceipt} />
         </SectionCard>
       )}
     </div>

@@ -8,6 +8,8 @@ import { useMetaMask } from "./hooks/useMetaMask.js";
 import { useHashPath } from "./router/hashPath.js";
 
 const HomePage = lazy(() => import("./pages/HomePage.jsx").then((m) => ({ default: m.HomePage })));
+const DashboardPage = lazy(() => import("./pages/DashboardPage.jsx").then((m) => ({ default: m.DashboardPage })));
+const TestQRPage = lazy(() => import("./pages/TestQRPage.jsx").then((m) => ({ default: m.TestQRPage })));
 const WarehousePage = lazy(() => import("./pages/WarehousePage.jsx").then((m) => ({ default: m.WarehousePage })));
 const EngineerPage = lazy(() => import("./pages/EngineerPage.jsx").then((m) => ({ default: m.EngineerPage })));
 const AdminPage = lazy(() => import("./pages/AdminPage.jsx").then((m) => ({ default: m.AdminPage })));
@@ -59,7 +61,10 @@ function App() {
   const contractAddress = api.address;
 
   const page = useMemo(() => {
+    const hash = window.location.hash;
+    if (hash.includes('lookup=')) return "testqr";
     if (path === "/") return "home";
+    if (path === "/dashboard") return "dashboard";
     if (path === "/admin") return "admin";
     if (path === "/warehouse") return "warehouse";
     if (path === "/engineer") return "engineer";
@@ -71,6 +76,8 @@ function App() {
       <AviationShell wallet={wallet} roles={roles} library={library} onLibraryChange={setLibrary}>
         <Suspense fallback={<div className="avi-alert avi-alert--warn">Đang tải trang…</div>}>
           {page === "home" ? <HomePage wallet={wallet} roles={roles} /> : null}
+          {page === "testqr" ? <TestQRPage wallet={wallet} /> : null}
+          {page === "dashboard" ? <DashboardPage api={api} /> : null}
           {page === "warehouse" ? <WarehousePage wallet={wallet} roles={roles} api={api} /> : null}
           {page === "engineer" ? <EngineerPage wallet={wallet} roles={roles} api={api} /> : null}
           {page === "admin" ? (

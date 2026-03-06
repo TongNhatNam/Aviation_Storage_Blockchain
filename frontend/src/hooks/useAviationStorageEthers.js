@@ -2,6 +2,7 @@ import { BrowserProvider, Contract } from "ethers";
 import abi from "../contracts/AviationStorage.abi.json";
 import deployedAddresses from "../contracts/deployedAddresses.json";
 import { formatError } from "../utils/error.js";
+import { mapWithConcurrency } from "../utils/async.js";
 
 function getContractAddress(chainId) {
   if (!chainId) return undefined;
@@ -124,16 +125,58 @@ export function useAviationStorageEthers({ chainId }) {
       const count = await contract.itemCount();
       const total = Number(count);
       const items = [];
+      const n = Math.min(total, limit);
+      const indices = Array.from({ length: n }, (_, i) => i);
+      const itemIds = await mapWithConcurrency(indices, 8, (i) => contract.itemIdAt(i));
+      const itemRaws = await mapWithConcurrency(itemIds, 8, (itemId) => contract.getItemById(itemId));
 
-      for (let i = 0; i < Math.min(total, limit); i += 1) {
-        const itemId = await contract.itemIdAt(i);
-        const itemRaw = await contract.getItemById(itemId);
-        items.push({ itemId, item: itemRaw });
+      for (let i = 0; i < itemIds.length; i += 1) {
+        items.push({ itemId: itemIds[i], item: itemRaws[i] });
       }
 
       return { total, items };
     } catch (e) {
       throw new Error(formatError(e));
+    }
+  }
+
+  async function listWarehouseLocations() {
+    try {
+      const contract = await getReadContract();
+      if (!contract.getWarehouseLocationsEnabled) return { locations: [] };
+      const locations = await contract.getWarehouseLocationsEnabled();
+      return { locations: Array.isArray(locations) ? locations : [] };
+    } catch (e) {
+      return { locations: [], error: formatError(e) };
+    }
+  }
+
+  async function listTransferDestinations() {
+    try {
+      const contract = await getReadContract();
+      if (!contract.getTransferDestinationsEnabled) return { destinations: [] };
+      const destinations = await contract.getTransferDestinationsEnabled();
+      return { destinations: Array.isArray(destinations) ? destinations : [] };
+    } catch (e) {
+      return { destinations: [], error: formatError(e) };
+    }
+  }
+
+  async function getPolicies() {
+    try {
+      const contract = await getReadContract();
+      if (!contract.getPolicies) return { policies: undefined };
+      const result = await contract.getPolicies();
+      const policies = {
+        requireLocationWhitelisted: Boolean(result?.[0]),
+        requireDestinationWhitelisted: Boolean(result?.[1]),
+        requireMetadataOnRegister: Boolean(result?.[2]),
+        requireNotesOnInspect: Boolean(result?.[3]),
+        lockOnAircraftDestination: Boolean(result?.[4]),
+      };
+      return { policies };
+    } catch (e) {
+      return { policies: undefined, error: formatError(e) };
     }
   }
 
@@ -146,5 +189,8 @@ export function useAviationStorageEthers({ chainId }) {
     inspectItem,
     getItem,
     listItems,
+    listWarehouseLocations,
+    listTransferDestinations,
+    getPolicies,
   };
 }

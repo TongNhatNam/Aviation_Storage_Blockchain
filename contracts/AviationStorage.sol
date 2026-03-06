@@ -9,6 +9,45 @@ contract AviationStorage is AviationAccessControl {
 
   bytes32[] private _itemIds;
 
+  enum DestinationKind {
+    Internal,
+    Aircraft
+  }
+
+  string[] private _warehouseLocations;
+  mapping(bytes32 => bool) private _warehouseLocationExists;
+  mapping(bytes32 => bool) private _warehouseLocationEnabled;
+
+  string[] private _destinations;
+  mapping(bytes32 => bool) private _destinationExists;
+  mapping(bytes32 => bool) private _destinationEnabled;
+  mapping(bytes32 => DestinationKind) private _destinationKind;
+
+  bool public policyRequireLocationWhitelisted;
+  bool public policyRequireDestinationWhitelisted;
+  bool public policyRequireMetadataOnRegister;
+  bool public policyRequireNotesOnInspect;
+  bool public policyLockOnAircraftDestination;
+
+  event WarehouseLocationSet(string location, bool enabled, address indexed actor);
+  event DestinationSet(string destination, DestinationKind kind, bool enabled, address indexed actor);
+  event PoliciesSet(
+    bool requireLocationWhitelisted,
+    bool requireDestinationWhitelisted,
+    bool requireMetadataOnRegister,
+    bool requireNotesOnInspect,
+    bool lockOnAircraftDestination,
+    address indexed actor
+  );
+
+  constructor() {
+    policyLockOnAircraftDestination = true;
+  }
+
+  function _key(string memory value) private pure returns (bytes32) {
+    return keccak256(bytes(value));
+  }
+
   function _isAircraftDestination(string calldata destination) private pure returns (bool) {
     bytes memory b = bytes(destination);
     uint256 i = 0;
@@ -23,6 +62,145 @@ contract AviationStorage is AviationAccessControl {
       if (c != uint8(needle[j])) return false;
     }
     return true;
+  }
+
+  function setWarehouseLocation(string calldata location, bool enabled) external onlyAdmin {
+    require(bytes(location).length != 0, "EMPTY_LOCATION");
+    bytes32 k = _key(location);
+    if (!_warehouseLocationExists[k]) {
+      _warehouseLocationExists[k] = true;
+      _warehouseLocations.push(location);
+    }
+    _warehouseLocationEnabled[k] = enabled;
+    emit WarehouseLocationSet(location, enabled, msg.sender);
+  }
+
+  function getWarehouseLocationCatalog() external view returns (string[] memory locations, bool[] memory enabled) {
+    locations = _warehouseLocations;
+    enabled = new bool[](locations.length);
+    for (uint256 i = 0; i < locations.length; i += 1) {
+      enabled[i] = _warehouseLocationEnabled[_key(locations[i])];
+    }
+  }
+
+  function getWarehouseLocationsEnabled() external view returns (string[] memory locations) {
+    uint256 count = 0;
+    for (uint256 i = 0; i < _warehouseLocations.length; i += 1) {
+      if (_warehouseLocationEnabled[_key(_warehouseLocations[i])]) count += 1;
+    }
+    locations = new string[](count);
+    uint256 j = 0;
+    for (uint256 i = 0; i < _warehouseLocations.length; i += 1) {
+      if (_warehouseLocationEnabled[_key(_warehouseLocations[i])]) {
+        locations[j] = _warehouseLocations[i];
+        j += 1;
+      }
+    }
+  }
+
+  function isWarehouseLocationEnabled(string calldata location) external view returns (bool) {
+    return _warehouseLocationEnabled[_key(location)];
+  }
+
+  function setDestination(string calldata destination, DestinationKind kind, bool enabled) external onlyAdmin {
+    require(bytes(destination).length != 0, "EMPTY_DESTINATION");
+    bytes32 k = _key(destination);
+    if (!_destinationExists[k]) {
+      _destinationExists[k] = true;
+      _destinations.push(destination);
+    }
+    _destinationKind[k] = kind;
+    _destinationEnabled[k] = enabled;
+    emit DestinationSet(destination, kind, enabled, msg.sender);
+  }
+
+  function getDestinationCatalog()
+    external
+    view
+    returns (string[] memory destinations, DestinationKind[] memory kinds, bool[] memory enabled)
+  {
+    destinations = _destinations;
+    kinds = new DestinationKind[](destinations.length);
+    enabled = new bool[](destinations.length);
+    for (uint256 i = 0; i < destinations.length; i += 1) {
+      bytes32 k = _key(destinations[i]);
+      kinds[i] = _destinationKind[k];
+      enabled[i] = _destinationEnabled[k];
+    }
+  }
+
+  function getTransferDestinationsEnabled() external view returns (string[] memory destinations) {
+    uint256 count = 0;
+    for (uint256 i = 0; i < _destinations.length; i += 1) {
+      if (_destinationEnabled[_key(_destinations[i])]) count += 1;
+    }
+    destinations = new string[](count);
+    uint256 j = 0;
+    for (uint256 i = 0; i < _destinations.length; i += 1) {
+      if (_destinationEnabled[_key(_destinations[i])]) {
+        destinations[j] = _destinations[i];
+        j += 1;
+      }
+    }
+  }
+
+  function getAircraftDestinationsEnabled() external view returns (string[] memory destinations) {
+    uint256 count = 0;
+    for (uint256 i = 0; i < _destinations.length; i += 1) {
+      bytes32 k = _key(_destinations[i]);
+      if (_destinationEnabled[k] && _destinationKind[k] == DestinationKind.Aircraft) count += 1;
+    }
+    destinations = new string[](count);
+    uint256 j = 0;
+    for (uint256 i = 0; i < _destinations.length; i += 1) {
+      bytes32 k = _key(_destinations[i]);
+      if (_destinationEnabled[k] && _destinationKind[k] == DestinationKind.Aircraft) {
+        destinations[j] = _destinations[i];
+        j += 1;
+      }
+    }
+  }
+
+  function getPolicies()
+    external
+    view
+    returns (
+      bool requireLocationWhitelisted,
+      bool requireDestinationWhitelisted,
+      bool requireMetadataOnRegister,
+      bool requireNotesOnInspect,
+      bool lockOnAircraftDestination
+    )
+  {
+    return (
+      policyRequireLocationWhitelisted,
+      policyRequireDestinationWhitelisted,
+      policyRequireMetadataOnRegister,
+      policyRequireNotesOnInspect,
+      policyLockOnAircraftDestination
+    );
+  }
+
+  function setPolicies(
+    bool requireLocationWhitelisted,
+    bool requireDestinationWhitelisted,
+    bool requireMetadataOnRegister,
+    bool requireNotesOnInspect,
+    bool lockOnAircraftDestination
+  ) external onlyAdmin {
+    policyRequireLocationWhitelisted = requireLocationWhitelisted;
+    policyRequireDestinationWhitelisted = requireDestinationWhitelisted;
+    policyRequireMetadataOnRegister = requireMetadataOnRegister;
+    policyRequireNotesOnInspect = requireNotesOnInspect;
+    policyLockOnAircraftDestination = lockOnAircraftDestination;
+    emit PoliciesSet(
+      requireLocationWhitelisted,
+      requireDestinationWhitelisted,
+      requireMetadataOnRegister,
+      requireNotesOnInspect,
+      lockOnAircraftDestination,
+      msg.sender
+    );
   }
 
   event ItemRegistered(
@@ -94,6 +272,13 @@ contract AviationStorage is AviationAccessControl {
     require(bytes(code).length != 0, "EMPTY_CODE");
     require(bytes(partNumber).length != 0, "EMPTY_PN");
     require(bytes(serialNumber).length != 0, "EMPTY_SN");
+    require(bytes(location).length != 0, "EMPTY_LOCATION");
+    if (policyRequireLocationWhitelisted) {
+      require(_warehouseLocationEnabled[_key(location)], "LOCATION_NOT_ALLOWED");
+    }
+    if (policyRequireMetadataOnRegister) {
+      require(bytes(metadataHash).length != 0, "METADATA_REQUIRED");
+    }
 
     bytes32 itemId = computeItemId(code);
     require(!_exists[itemId], "ITEM_EXISTS");
@@ -138,11 +323,18 @@ contract AviationStorage is AviationAccessControl {
     // STRICT LOGIC: Prevent transfer if NOT serviceable (phải được kiểm định Tốt thì mới được chuyển)
     require(item.lastInspectionStatus == BaseItem.InspectionStatus.Serviceable, "NOT_SERVICEABLE_YET");
 
+    bytes32 dKey = _key(destination);
+    if (policyRequireDestinationWhitelisted) {
+      require(_destinationEnabled[dKey], "DESTINATION_NOT_ALLOWED");
+    }
+
     item.location = destination;
     item.updatedAt = block.timestamp;
     item.lastUpdatedBy = msg.sender;
-    if (_isAircraftDestination(destination)) {
-      item.isFinalized = true;
+    if (policyLockOnAircraftDestination) {
+      bool known = _destinationExists[dKey];
+      bool isAircraft = known ? (_destinationKind[dKey] == DestinationKind.Aircraft) : _isAircraftDestination(destination);
+      if (isAircraft) item.isFinalized = true;
     }
 
     item.history.push(BaseItem.AuditRecord({
@@ -184,6 +376,9 @@ contract AviationStorage is AviationAccessControl {
     bytes32 itemId = computeItemId(code);
     require(_exists[itemId], "ITEM_NOT_FOUND");
     require(status != BaseItem.InspectionStatus.Unknown, "INVALID_STATUS");
+    if (policyRequireNotesOnInspect) {
+      require(bytes(notesHash).length != 0, "NOTES_REQUIRED");
+    }
 
     BaseItem.Item storage item = _items[itemId];
     require(!item.isFinalized, "ITEM_FINALIZED");

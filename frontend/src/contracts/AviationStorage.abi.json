@@ -1,5 +1,10 @@
 [
   {
+    "inputs": [],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
     "anonymous": false,
     "inputs": [
       {
@@ -16,6 +21,37 @@
       }
     ],
     "name": "AdminTransferred",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "destination",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "enum AviationStorage.DestinationKind",
+        "name": "kind",
+        "type": "uint8"
+      },
+      {
+        "indexed": false,
+        "internalType": "bool",
+        "name": "enabled",
+        "type": "bool"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "actor",
+        "type": "address"
+      }
+    ],
+    "name": "DestinationSet",
     "type": "event"
   },
   {
@@ -177,6 +213,74 @@
     "anonymous": false,
     "inputs": [
       {
+        "indexed": false,
+        "internalType": "bool",
+        "name": "requireLocationWhitelisted",
+        "type": "bool"
+      },
+      {
+        "indexed": false,
+        "internalType": "bool",
+        "name": "requireDestinationWhitelisted",
+        "type": "bool"
+      },
+      {
+        "indexed": false,
+        "internalType": "bool",
+        "name": "requireMetadataOnRegister",
+        "type": "bool"
+      },
+      {
+        "indexed": false,
+        "internalType": "bool",
+        "name": "requireNotesOnInspect",
+        "type": "bool"
+      },
+      {
+        "indexed": false,
+        "internalType": "bool",
+        "name": "lockOnAircraftDestination",
+        "type": "bool"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "actor",
+        "type": "address"
+      }
+    ],
+    "name": "PoliciesSet",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "location",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "bool",
+        "name": "enabled",
+        "type": "bool"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "actor",
+        "type": "address"
+      }
+    ],
+    "name": "WarehouseLocationSet",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
         "indexed": true,
         "internalType": "address",
         "name": "account",
@@ -238,6 +342,42 @@
         "internalType": "bool",
         "name": "",
         "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getAircraftDestinationsEnabled",
+    "outputs": [
+      {
+        "internalType": "string[]",
+        "name": "destinations",
+        "type": "string[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getDestinationCatalog",
+    "outputs": [
+      {
+        "internalType": "string[]",
+        "name": "destinations",
+        "type": "string[]"
+      },
+      {
+        "internalType": "enum AviationStorage.DestinationKind[]",
+        "name": "kinds",
+        "type": "uint8[]"
+      },
+      {
+        "internalType": "bool[]",
+        "name": "enabled",
+        "type": "bool[]"
       }
     ],
     "stateMutability": "view",
@@ -309,6 +449,11 @@
             "internalType": "address",
             "name": "lastUpdatedBy",
             "type": "address"
+          },
+          {
+            "internalType": "bool",
+            "name": "isFinalized",
+            "type": "bool"
           },
           {
             "components": [
@@ -414,6 +559,11 @@
             "type": "address"
           },
           {
+            "internalType": "bool",
+            "name": "isFinalized",
+            "type": "bool"
+          },
+          {
             "components": [
               {
                 "internalType": "uint256",
@@ -444,6 +594,83 @@
         "internalType": "struct BaseItem.Item",
         "name": "",
         "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getPolicies",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "requireLocationWhitelisted",
+        "type": "bool"
+      },
+      {
+        "internalType": "bool",
+        "name": "requireDestinationWhitelisted",
+        "type": "bool"
+      },
+      {
+        "internalType": "bool",
+        "name": "requireMetadataOnRegister",
+        "type": "bool"
+      },
+      {
+        "internalType": "bool",
+        "name": "requireNotesOnInspect",
+        "type": "bool"
+      },
+      {
+        "internalType": "bool",
+        "name": "lockOnAircraftDestination",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getTransferDestinationsEnabled",
+    "outputs": [
+      {
+        "internalType": "string[]",
+        "name": "destinations",
+        "type": "string[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getWarehouseLocationCatalog",
+    "outputs": [
+      {
+        "internalType": "string[]",
+        "name": "locations",
+        "type": "string[]"
+      },
+      {
+        "internalType": "bool[]",
+        "name": "enabled",
+        "type": "bool[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getWarehouseLocationsEnabled",
+    "outputs": [
+      {
+        "internalType": "string[]",
+        "name": "locations",
+        "type": "string[]"
       }
     ],
     "stateMutability": "view",
@@ -481,6 +708,25 @@
       }
     ],
     "name": "isEngineer",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "location",
+        "type": "string"
+      }
+    ],
+    "name": "isWarehouseLocationEnabled",
     "outputs": [
       {
         "internalType": "bool",
@@ -543,6 +789,71 @@
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "policyLockOnAircraftDestination",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "policyRequireDestinationWhitelisted",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "policyRequireLocationWhitelisted",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "policyRequireMetadataOnRegister",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "policyRequireNotesOnInspect",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "string",
@@ -583,6 +894,29 @@
   {
     "inputs": [
       {
+        "internalType": "string",
+        "name": "destination",
+        "type": "string"
+      },
+      {
+        "internalType": "enum AviationStorage.DestinationKind",
+        "name": "kind",
+        "type": "uint8"
+      },
+      {
+        "internalType": "bool",
+        "name": "enabled",
+        "type": "bool"
+      }
+    ],
+    "name": "setDestination",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "address",
         "name": "account",
         "type": "address"
@@ -594,6 +928,57 @@
       }
     ],
     "name": "setEngineer",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bool",
+        "name": "requireLocationWhitelisted",
+        "type": "bool"
+      },
+      {
+        "internalType": "bool",
+        "name": "requireDestinationWhitelisted",
+        "type": "bool"
+      },
+      {
+        "internalType": "bool",
+        "name": "requireMetadataOnRegister",
+        "type": "bool"
+      },
+      {
+        "internalType": "bool",
+        "name": "requireNotesOnInspect",
+        "type": "bool"
+      },
+      {
+        "internalType": "bool",
+        "name": "lockOnAircraftDestination",
+        "type": "bool"
+      }
+    ],
+    "name": "setPolicies",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "location",
+        "type": "string"
+      },
+      {
+        "internalType": "bool",
+        "name": "enabled",
+        "type": "bool"
+      }
+    ],
+    "name": "setWarehouseLocation",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
