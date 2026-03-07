@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { PieChart, Pie, Cell, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from 'recharts';
 import { SectionCard } from "../components/SectionCard.jsx";
 
 export function DashboardPage({ api }) {
@@ -50,14 +51,64 @@ export function DashboardPage({ api }) {
     );
   }
 
+  const exportToCSV = () => {
+    if (!stats || !stats.items.length) return;
+
+    // BOM để hỗ trợ tiếng Việt trên Excel
+    const BOM = "\uFEFF";
+    
+    // Header dòng đầu tiên
+    const headers = ["Mã Thiết Bị (Code)", "Tên Phụ Tùng", "Số Part Number", "Số Serial Number", "Vị Trí Hiện Tại", "Trạng Thái Kiểm Định"];
+    let csvContent = BOM + headers.join(",") + "\n";
+
+    stats.items.forEach(({ item }) => {
+      const statusText = 
+          Number(item.lastInspectionStatus) === 1 ? "Serviceable" 
+        : Number(item.lastInspectionStatus) === 2 ? "Unserviceable" 
+        : Number(item.lastInspectionStatus) === 3 ? "Scrapped" 
+        : "Pending";
+      
+      const row = [
+        `"${item.code}"`,
+        `"${item.name}"`,
+        `"${item.partNumber}"`,
+        `"${item.serialNumber}"`,
+        `"${item.location}"`,
+        `"${statusText}"`
+      ];
+      csvContent += row.join(",") + "\n";
+    });
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `Blockchain_Warehouse_Report_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="avi-grid">
       <SectionCard
         title={
-          <span className="avi-pageTitle">
-            <span className="avi-pageIcon avi-pageIcon--dashboard" aria-hidden="true" />
-            <span>Thống Kê Tổng Quan</span>
-          </span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
+            <span className="avi-pageTitle">
+              <span className="avi-pageIcon avi-pageIcon--dashboard" aria-hidden="true" />
+              <span>Thống Kê Tổng Quan</span>
+            </span>
+            {stats && (
+              <button 
+                className="avi-btn avi-btn--primary" 
+                onClick={exportToCSV}
+                style={{ fontSize: '0.85rem', padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 6, textTransform: 'uppercase', letterSpacing: 1 }}
+              >
+                <span>📥</span> Tải Báo cáo Kho (CSV)
+              </button>
+            )}
+          </div>
         }
         subtitle="Tổng quan hệ thống quản lý vật tư hàng không trên Blockchain"
       >
@@ -98,79 +149,78 @@ export function DashboardPage({ api }) {
           </div>
 
           {/* Charts */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 20 }}>
             {/* Status Chart */}
             <SectionCard title="📈 Phân Bố Trạng Thái" subtitle="Tình trạng kỹ thuật phụ tùng">
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 20 }}>
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: '0.9rem', color: 'rgba(255,255,255,0.8)' }}>
-                    <span>Serviceable</span>
-                    <span style={{ color: 'var(--color-success)', fontWeight: 'bold' }}>{stats.serviceable} ({stats.total > 0 ? Math.round(stats.serviceable / stats.total * 100) : 0}%)</span>
-                  </div>
-                  <div style={{ height: 12, background: 'rgba(255,255,255,0.05)', borderRadius: 6, overflow: 'hidden', border: '1px solid rgba(0, 255, 136, 0.2)' }}>
-                    <div style={{
-                      height: '100%',
-                      width: `${stats.total > 0 ? (stats.serviceable / stats.total * 100) : 0}%`,
-                      backgroundColor: '#00ff88',
-                      boxShadow: '0 0 10px #00ff88',
-                      transition: 'width 0.5s ease-in-out'
-                    }}></div>
-                  </div>
-                </div>
-
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: '0.9rem', color: 'rgba(255,255,255,0.8)' }}>
-                    <span>Unserviceable</span>
-                    <span style={{ color: 'var(--color-danger)', fontWeight: 'bold' }}>{stats.unserviceable} ({stats.total > 0 ? Math.round(stats.unserviceable / stats.total * 100) : 0}%)</span>
-                  </div>
-                  <div style={{ height: 12, background: 'rgba(255,255,255,0.05)', borderRadius: 6, overflow: 'hidden', border: '1px solid rgba(255, 51, 102, 0.2)' }}>
-                    <div style={{
-                      height: '100%',
-                      width: `${stats.total > 0 ? (stats.unserviceable / stats.total * 100) : 0}%`,
-                      backgroundColor: '#ff3366',
-                      boxShadow: '0 0 10px #ff3366',
-                      transition: 'width 0.5s ease-in-out'
-                    }}></div>
-                  </div>
-                </div>
-
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: '0.9rem', color: 'rgba(255,255,255,0.8)' }}>
-                    <span>Chờ Kiểm Định</span>
-                    <span style={{ color: 'rgba(255,255,255,0.6)', fontWeight: 'bold' }}>{stats.unknown} ({stats.total > 0 ? Math.round(stats.unknown / stats.total * 100) : 0}%)</span>
-                  </div>
-                  <div style={{ height: 12, background: 'rgba(255,255,255,0.05)', borderRadius: 6, overflow: 'hidden', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
-                    <div style={{
-                      height: '100%',
-                      width: `${stats.total > 0 ? (stats.unknown / stats.total * 100) : 0}%`,
-                      backgroundColor: 'rgba(255,255,255,0.4)',
-                      transition: 'width 0.5s ease-in-out'
-                    }}></div>
-                  </div>
-                </div>
+              <div style={{ marginTop: 20, display: 'flex', justifyContent: 'center', height: 250 }}>
+                {stats.total > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={[
+                          { name: 'Serviceable', value: stats.serviceable, color: '#00ff88' },
+                          { name: 'Unserviceable', value: stats.unserviceable, color: '#ff3366' },
+                          { name: 'Chờ Kiểm Định', value: stats.unknown, color: 'rgba(255,255,255,0.4)' }
+                        ]}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={90}
+                        paddingAngle={5}
+                        dataKey="value"
+                        stroke="none"
+                      >
+                        {
+                          [
+                            { name: 'Serviceable', value: stats.serviceable, color: '#00ff88' },
+                            { name: 'Unserviceable', value: stats.unserviceable, color: '#ff3366' },
+                            { name: 'Chờ Kiểm Định', value: stats.unknown, color: 'rgba(255,255,255,0.4)' }
+                          ].map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} style={{ filter: `drop-shadow(0 0 8px ${entry.color})` }} />
+                          ))
+                        }
+                      </Pie>
+                      <Tooltip 
+                        contentStyle={{ background: 'rgba(5, 15, 30, 0.95)', border: '1px solid rgba(0, 240, 255, 0.3)', borderRadius: 8, color: '#fff' }}
+                        itemStyle={{ color: '#fff' }}
+                      />
+                      <Legend verticalAlign="bottom" height={36} wrapperStyle={{ fontSize: '0.85rem' }} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div style={{ color: 'rgba(255,255,255,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Chưa có dữ liệu</div>
+                )}
               </div>
             </SectionCard>
 
             {/* Location Chart */}
             <SectionCard title="📍 Phân Bố Theo Kho" subtitle="Số lượng phụ tùng tại mỗi vị trí">
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 20 }}>
-                {Object.entries(stats.locations).sort((a, b) => b[1] - a[1]).map(([loc, count]) => (
-                  <div key={loc}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: '0.9rem', color: 'rgba(255,255,255,0.8)' }}>
-                      <span style={{ fontFamily: 'monospace' }}>{loc}</span>
-                      <span style={{ color: '#00f0ff', fontWeight: 'bold' }}>{count}</span>
-                    </div>
-                    <div style={{ height: 8, background: 'rgba(255,255,255,0.05)', borderRadius: 4, overflow: 'hidden', border: '1px solid rgba(0, 240, 255, 0.2)' }}>
-                      <div style={{
-                        height: '100%',
-                        width: `${(count / stats.total * 100)}%`,
-                        backgroundColor: '#00f0ff',
-                        boxShadow: '0 0 8px #00f0ff',
-                        transition: 'width 0.5s ease-in-out'
-                      }}></div>
-                    </div>
-                  </div>
-                ))}
+              <div style={{ marginTop: 20, height: 250 }}>
+                {stats.total > 0 && Object.keys(stats.locations).length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={Object.entries(stats.locations).map(([name, value]) => ({ name, value }))}
+                      layout="vertical"
+                      margin={{ top: 5, right: 30, left: 40, bottom: 5 }}
+                    >
+                      <XAxis type="number" hide />
+                      <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fill: 'rgba(255,255,255,0.7)', fontSize: 12, fontFamily: 'monospace' }} />
+                      <Tooltip 
+                        cursor={{ fill: 'rgba(0, 240, 255, 0.05)' }}
+                        contentStyle={{ background: 'rgba(5, 15, 30, 0.95)', border: '1px solid rgba(0, 240, 255, 0.3)', borderRadius: 8, color: '#fff' }}
+                      />
+                      <Bar dataKey="value" fill="#00f0ff" radius={[0, 4, 4, 0]} maxBarSize={30}>
+                        {
+                          Object.entries(stats.locations).map((entry, index) => (
+                            <Cell key={`cell-${index}`} style={{ filter: 'drop-shadow(0 0 5px #00f0ff)' }} />
+                          ))
+                        }
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div style={{ color: 'rgba(255,255,255,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>Chưa có dữ liệu</div>
+                )}
               </div>
             </SectionCard>
           </div>

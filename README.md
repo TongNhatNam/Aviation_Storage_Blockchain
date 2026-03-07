@@ -9,8 +9,11 @@
 
 ## Công nghệ sử dụng
 ### Frontend
-- **React/Vite** - Framework xây dựng giao diện tốc độ cao
-- **Web3.js** - Thư viện tương tác với blockchain và Smart Contract
+- **React 19 / Vite** - Framework xây dựng giao diện tốc độ cao
+- **Ethers.js / Web3.js** - Thư viện tương tác với blockchain và Smart Contract
+- **Recharts** - Hiển thị biểu đồ phân tích trực quan
+- **html2canvas & jsPDF** - Hỗ trợ in và xuất chứng nhận điện tử (PDF)
+- **qrcode.react** - Sinh mã QR cho thiết bị
 
 ### Blockchain & Backend
 - **Solidity** - Ngôn ngữ lập trình Smart Contract
@@ -20,20 +23,20 @@
 ## Cấu trúc dự án
 ```text
 aviation-blockchain-storage/
-├── contracts/           # Smart Contracts (Solidity)
-│   ├── AviationStorage.sol # Logic quản lý vật tư & kiểm định
-│   └── BaseItem.sol        # Cấu trúc dữ liệu cơ bản
+├── backend/             # Blockchain Core & Smart Contracts
+│   ├── contracts/       # Smart Contracts (Solidity)
+│   ├── scripts/         # Scripts tiện ích Hardhat (Deploy, Seed data)
+│   ├── test/            # Unit tests cho Smart Contracts
+│   ├── hardhat.config.js# Cấu hình mạng lưới Hardhat & Ganache
+│   └── package.json     # Node modules cho lõi rễ Blockchain
 ├── frontend/            # Giao diện người dùng Web3 (React)
 │   ├── src/             
 │   │   ├── components/  # Các UI Component tái sử dụng
-│   │   ├── contracts/   # ABI và địa chỉ Smart Contract
-│   │   ├── hooks/       # Custom React Hooks (vd: useAviationStorageWeb3)
 │   │   ├── pages/       # Các trang giao diện chính
-│   │   ├── router/      # Định tuyến ứng dụng (React Router)
+│   │   ├── styles/      # Cấu trúc CSS UI/UX Design Token
 │   │   └── utils/       # Hàm hỗ trợ tiện ích
-├── scripts/             # Scripts tiện ích Hardhat (Deploy, Seed data)
-├── test/                # Unit tests cho Smart Contracts
-└── hardhat.config.js    # Cấu hình Hardhat
+├── docs/                # Thư mục chứa tài liệu hướng dẫn (Markdown)
+└── package.json         # Danh sách tập lệnh điều phối chung (Workspace Scripts)
 ```
 
 ## Yêu cầu hệ thống
@@ -41,23 +44,25 @@ aviation-blockchain-storage/
 - **Trình duyệt**: Chrome/Edge/Firefox (phiên bản mới nhất)
 - **Tiện ích mở rộng**: MetaMask Wallet
 
-## Cài đặt
+## Hướng dẫn Cài đặt & Tải Dependencies
 
-1. **Clone repository**
+1. **Clone repository (Tải mã nguồn về máy)**
 ```bash
 git clone <repository_url>
 cd aviation-blockchain-storage
 ```
 
-2. **Cài đặt dependencies cho cả workspace và frontend**
+2. **Cài đặt thư viện (Dependencies)**
+Phần mềm gồm 2 lớp (Blockchain Core và Frontend React). Bạn chỉ cần chạy 1 lệnh duy nhất dưới dây để hệ thống tự động tải toàn bộ thư viện cần thiết (`ethers`, `recharts`, `jspdf`, `ganache`,...) cho cả 2 lớp:
 ```bash
 npm run setup
 ```
+*(Lệnh này tương đương với việc chạy `npm install` ở thư mục gốc và `cd frontend && npm install` ở thư mục frontend).*
 
 ## Cấu hình MetaMask
 1. Mở tiện ích MetaMask trên trình duyệt.
 2. Thêm mạng lưới **Ganache** thủ công hoặc dùng tính năng tự động tích hợp trên giao diện DApp.
-   - **RPC URL:** `http://127.0.0.1:8787`
+   - **RPC URL:** `http://127.0.0.1:8787` (Hoặc tuỳ chỉnh trong file cấu hình)
    - **Chain ID:** `1337`
    - **Currency Symbol:** `ETH`
 3. Nhập mật khẩu (Mnemonic) cấp sẵn của dự án để tải danh sách các tài khoản đóng vai trò:

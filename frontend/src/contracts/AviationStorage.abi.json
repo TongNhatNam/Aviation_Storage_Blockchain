@@ -84,6 +84,31 @@
       },
       {
         "indexed": false,
+        "internalType": "string",
+        "name": "newLocation",
+        "type": "string"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "actor",
+        "type": "address"
+      }
+    ],
+    "name": "ItemDemounted",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "itemId",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
         "internalType": "enum BaseItem.InspectionStatus",
         "name": "status",
         "type": "uint8"
@@ -157,6 +182,25 @@
       }
     ],
     "name": "ItemRegistered",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "itemId",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "actor",
+        "type": "address"
+      }
+    ],
+    "name": "ItemScrapped",
     "type": "event"
   },
   {
@@ -326,6 +370,24 @@
       }
     ],
     "stateMutability": "pure",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "code",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "newLocation",
+        "type": "string"
+      }
+    ],
+    "name": "demountItem",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -887,6 +949,19 @@
       }
     ],
     "name": "registerItem",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "code",
+        "type": "string"
+      }
+    ],
+    "name": "scrapItem",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

@@ -4,6 +4,15 @@ import { TransactionInfo } from "./TransactionInfo.jsx";
 import { formatError } from "../utils/error.js";
 import { isItemLocked } from "../utils/itemState.js";
 
+const FALLBACK_WAREHOUSE_LOCATIONS = [
+  "HAN-WH-A1",
+  "HAN-WH-A2",
+  "HAN-WH-B1",
+  "SGN-WH-B3",
+  "SGN-WH-C2",
+  "DAD-WH-LM1",
+];
+
 function toNumber(value, fallback = 0) {
   const n = Number(value);
   if (Number.isFinite(n)) return n;
@@ -53,7 +62,8 @@ export function EngineerActions({ api, disabled, onActionDone }) {
       // Chỉ lấy những item chưa kiểm định (0) hoặc hỏng hóc (2)
       const pending = data.items.filter(({ item }) => {
         const status = Number(item.lastInspectionStatus);
-        return (status === 0 || status === 2) && !isItemLocked(item);
+        // Không lấy Scrapped (3)
+        return (status === 0 || status === 2) && status !== 3 && !isItemLocked(item);
       });
       setPendingItems(pending);
     } catch (e) {
@@ -63,9 +73,52 @@ export function EngineerActions({ api, disabled, onActionDone }) {
     }
   }
 
+  const [lockedItems, setLockedItems] = useState([]);
+  const [loadingLocked, setLoadingLocked] = useState(false);
+  const [locations, setLocations] = useState([]);
+
+  const [demountForm, setDemountForm] = useState({
+    code: "",
+    newLocation: ""
+  });
+
+  async function fetchLockedItemsAndLocations() {
+    if (!canUseApi) return;
+    setLoadingLocked(true);
+    try {
+      const data = await api.listItems({ limit: 100 });
+      // Lấy danh sách item đã locked (trên máy bay) và chưa bị tiêu huỷ
+      const locked = data.items.filter(({ item }) => {
+        const status = Number(item.lastInspectionStatus);
+        return isItemLocked(item) && status !== 3; // 3 = Scrapped
+      });
+      setLockedItems(locked);
+
+      if (api.listWarehouseLocations) {
+        const { locations } = await api.listWarehouseLocations();
+        const finalLocs = locations?.length > 0 ? locations : FALLBACK_WAREHOUSE_LOCATIONS;
+        setLocations(finalLocs);
+        if (finalLocs.length > 0 && !demountForm.newLocation) {
+          setDemountForm(s => ({ ...s, newLocation: finalLocs[0] }));
+        }
+      } else {
+        setLocations(FALLBACK_WAREHOUSE_LOCATIONS);
+        if (!demountForm.newLocation) {
+          setDemountForm(s => ({ ...s, newLocation: FALLBACK_WAREHOUSE_LOCATIONS[0] }));
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoadingLocked(false);
+    }
+  }
+
   // Tự động fetch khi component load hoặc khi canUseApi thay đổi
   useEffect(() => {
     fetchPendingItems();
+    fetchLockedItemsAndLocations();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canUseApi]);
 
   async function run(action) {
@@ -78,6 +131,7 @@ export function EngineerActions({ api, disabled, onActionDone }) {
       setTxReceipt(receipt);
       onActionDone?.();
       await fetchPendingItems();
+      await fetchLockedItemsAndLocations();
     } catch (e) {
       setMessage(formatError(e));
     } finally {
@@ -155,6 +209,22 @@ export function EngineerActions({ api, disabled, onActionDone }) {
           >
             Gửi giao dịch
           </button>
+          
+          {inspectForm.status === 2 && (
+            <button
+              className="avi-btn"
+              disabled={!canUseApi || busy}
+              style={{ padding: '10px 24px', letterSpacing: 1, textTransform: 'uppercase', background: 'rgba(255, 51, 102, 0.2)', color: '#ff3366', border: '1px solid rgba(255, 51, 102, 0.5)', boxShadow: '0 0 15px rgba(255, 51, 102, 0.2)' }}
+              onClick={() => {
+                if (window.confirm("CẢNH BÁO: Hành động đánh dấu TIÊU HỦY (SCRAP) không thể đảo ngược! Bạn có chắc chắn muốn huỷ vĩnh viễn thiết bị này?")) {
+                  run(() => api.scrapItem(inspectForm.code));
+                }
+              }}
+            >
+              🗑️ Tiêu Hủy (Scrap)
+            </button>
+          )}
+
           <button className="avi-btn" disabled={!canUseApi || loadingPending} onClick={fetchPendingItems} style={{ padding: '10px 20px', letterSpacing: 1 }}>
             Làm mới danh sách
           </button>
@@ -205,9 +275,9 @@ export function EngineerActions({ api, disabled, onActionDone }) {
                 }}
               >
                 <div className="avi-cardBody" style={{ padding: "16px" }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <strong style={{ color: '#00f0ff', fontFamily: 'Space Mono, monospace', fontSize: '1.1rem', letterSpacing: 1 }}>{item.code}</strong>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+                      <strong style={{ color: '#00f0ff', fontFamily: 'Space Mono, monospace', fontSize: '1.1rem', letterSpacing: 1, wordBreak: 'break-all' }}>{item.code}</strong>
                       <button
                         className="avi-btn"
                         onClick={(e) => {
@@ -241,6 +311,88 @@ export function EngineerActions({ api, disabled, onActionDone }) {
                   <div style={{ color: '#fff', fontSize: '0.95rem', marginTop: 12 }}>{item.name} <span style={{ color: 'rgba(255,255,255,0.5)' }}>({item.partNumber})</span></div>
                   <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.85rem', marginTop: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
                     <span>📍 Kho: {item.location}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </SectionCard>
+
+      <SectionCard title="Tháo dỡ Kỹ thuật (Demount)" subtitle="Danh sách thiết bị đang gắn trên máy bay (Locked)">
+        <div className="avi-formGrid" style={{ marginBottom: 20 }}>
+            <input
+              placeholder="Mã (code)"
+              value={demountForm.code}
+              onChange={(e) => setDemountForm((s) => ({ ...s, code: e.target.value }))}
+              style={{
+                background: 'rgba(5, 15, 30, 0.8)',
+                border: '1px solid rgba(0, 240, 255, 0.4)',
+                color: '#00f0ff',
+                fontFamily: 'Space Mono, monospace'
+              }}
+            />
+            <select
+              value={demountForm.newLocation}
+              onChange={(e) => setDemountForm((s) => ({ ...s, newLocation: e.target.value }))}
+              style={{ background: 'rgba(5, 15, 30, 0.8)', border: '1px solid rgba(0, 240, 255, 0.4)', color: '#fff', outline: 'none' }}
+            >
+              {locations.length > 0 ? (
+                locations.map((loc) => (
+                  <option key={loc} value={loc} style={{ background: '#050f1e', color: '#fff' }}>
+                    📦 Dỡ về kho: {loc}
+                  </option>
+                ))
+              ) : (
+                <option value="" disabled style={{ background: '#050f1e', color: '#fff' }}>Chưa có Kho nào được cấu hình</option>
+              )}
+            </select>
+            <button
+              className="avi-btn avi-btn--primary"
+              disabled={!canUseApi || busy || !demountForm.code || !demountForm.newLocation}
+              style={{ padding: '10px 24px', letterSpacing: 1, textTransform: 'uppercase', boxShadow: '0 0 15px rgba(255, 170, 0, 0.3)', border: '1px solid rgba(255, 170, 0, 0.8)', background: 'rgba(255, 170, 0, 0.15)', color: '#ffaa00' }}
+              onClick={() => run(() => api.demountItem(demountForm.code, demountForm.newLocation))}
+            >
+              🔧 Xác nhận tháo dỡ
+            </button>
+        </div>
+
+        {loadingLocked ? (
+          <div style={{ color: 'rgba(255,255,255,0.5)' }}>Đang tải danh sách...</div>
+        ) : lockedItems.length === 0 ? (
+          <div style={{ color: 'rgba(255,255,255,0.5)', padding: 16, background: 'rgba(255, 255, 255, 0.05)', borderRadius: 8, border: '1px solid rgba(255, 255, 255, 0.1)' }}>Không có thiết bị cấu hình nào trên máy bay lúc này.</div>
+        ) : (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 16 }}>
+            {lockedItems.map(({ itemId, item }) => (
+              <div
+                key={itemId}
+                className="avi-card"
+                style={{
+                  cursor: 'pointer',
+                  background: 'rgba(5, 15, 30, 0.95)',
+                  border: '1px solid rgba(255, 170, 0, 0.3)',
+                  borderLeft: '4px solid #ffaa00',
+                  boxShadow: '0 0 15px rgba(255, 170, 0, 0.05)',
+                  transition: 'all 0.2s ease-in-out'
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.boxShadow = '0 0 20px rgba(255, 170, 0, 0.2)';
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.boxShadow = '0 0 15px rgba(255, 170, 0, 0.05)';
+                }}
+                onClick={() => setDemountForm(s => ({ ...s, code: item.code }))}
+              >
+                <div className="avi-cardBody" style={{ padding: "16px" }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <strong style={{ color: '#00f0ff', fontFamily: 'Space Mono, monospace', fontSize: '1.1rem', letterSpacing: 1, wordBreak: 'break-all' }}>{item.code}</strong>
+                    <span style={{ fontSize: '0.8rem', padding: '4px 8px', borderRadius: 4, background: 'rgba(255, 170, 0, 0.1)', color: '#ffaa00', border: '1px solid rgba(255, 170, 0, 0.3)'}}>
+                      LOCKED
+                    </span>
+                  </div>
+                  <div style={{ color: '#fff', fontSize: '0.95rem', marginTop: 12 }}>{item.name}</div>
+                  <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.85rem', marginTop: 6 }}>
+                    📍 Máy bay: <span style={{ color: '#00f0ff' }}>{item.location}</span>
                   </div>
                 </div>
               </div>

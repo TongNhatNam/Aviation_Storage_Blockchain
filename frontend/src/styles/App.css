@@ -1,0 +1,29 @@
+@import "./tokens.css";
+@import "./background.css";
+@import "./layout.css";
+@import "./components.css";
+@import "./base.css";
+@import "./responsive.css";
+
+.avi-navIcon--dashboard {
+    mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M12 20V10"></path><path d="M18 20V4"></path><path d="M6 20v-4"></path></svg>');
+}
+
+/* Futuristic Animations for Home Page */
+@keyframes neon-pulse {
+  0% { box-shadow: 0 0 5px var(--color-primary), 0 0 10px var(--color-primary); }
+  50% { box-shadow: 0 0 15px var(--color-primary), 0 0 30px var(--color-primary); }
+  100% { box-shadow: 0 0 5px var(--color-primary), 0 0 10px var(--color-primary); }
+}
+
+@keyframes float {
+  0% { transform: translateY(0px) translateZ(0); }
+  50% { transform: translateY(-10px) translateZ(0); }
+  100% { transform: translateY(0px) translateZ(0); }
+}
+
+@keyframes float-delayed {
+  0% { transform: translateY(0px) translateZ(0); }
+  50% { transform: translateY(-8px) translateZ(0); }
+  100% { transform: translateY(0px) translateZ(0); }
+}

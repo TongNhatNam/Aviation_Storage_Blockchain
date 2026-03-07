@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { QRCodeSVG } from 'qrcode.react';
 import { ItemQRCode } from "./ItemQRCode.jsx";
 import { formatError } from "../utils/error.js";
@@ -210,7 +210,7 @@ export function ItemViewer({ api }) {
       </div>
 
       <div style={{ marginTop: 24 }}>
-        <h3 style={{ textTransform: 'uppercase', letterSpacing: 2, color: 'var(--color-primary)', borderBottom: '1px solid rgba(0, 240, 255, 0.2)', paddingBottom: 8 }}>Danh mục Tài sản (Max 50)</h3>
+        <h3 style={{ textTransform: 'uppercase', letterSpacing: 2, color: 'var(--color-primary)', borderBottom: '1px solid rgba(0, 240, 255, 0.2)', paddingBottom: 8 }}>Danh sách phụ tùng</h3>
         <button className="avi-btn avi-btn--primary" disabled={!canUseApi || listBusy} onClick={refreshList} style={{ marginTop: 16 }}>
           {listBusy ? "Đang tải dữ liệu..." : "Tải danh sách Blockchain"}
         </button>
@@ -233,36 +233,49 @@ export function ItemViewer({ api }) {
                 <tbody>
                   {listResult.items.map(({ itemId, item }) => {
                     const isAOG = Number(item.lastInspectionStatus) === 2;
-                    const showQR = qrVisible[itemId];
                     const isLocked = isItemLocked(item);
+                    const showQR = qrVisible[itemId];
                     return (
-                      <tr key={itemId} style={{ background: isAOG ? 'rgba(255, 51, 102, 0.05)' : 'transparent', transition: 'background 0.2s' }} onMouseOver={(e) => e.currentTarget.style.background = 'rgba(0, 240, 255, 0.05)'} onMouseOut={(e) => e.currentTarget.style.background = isAOG ? 'rgba(255, 51, 102, 0.05)' : 'transparent'}>
-                        <td style={{ borderBottom: "1px solid rgba(255,255,255,0.05)", padding: '12px 8px', fontWeight: 'bold' }}>{item.partNumber}</td>
-                        <td style={{ borderBottom: "1px solid rgba(255,255,255,0.05)", padding: '12px 8px', color: 'var(--color-primary)' }}>{item.serialNumber}</td>
-                        <td style={{ borderBottom: "1px solid rgba(255,255,255,0.05)", padding: '12px 8px' }}>{item.location}</td>
-                        <td style={{ borderBottom: "1px solid rgba(255,255,255,0.05)", padding: '12px 8px', color: isLocked ? '#ff3366' : '#00ff88' }}>
-                          {isLocked ? "🔒 Locked" : "🟢 Active"}
-                        </td>
-                        <td style={{ borderBottom: "1px solid rgba(255,255,255,0.05)", padding: '12px 8px', color: isAOG ? '#ff3366' : Number(item.lastInspectionStatus) === 1 ? '#00ff88' : 'inherit', fontWeight: isAOG || Number(item.lastInspectionStatus) === 1 ? 'bold' : 'normal' }}>
-                          <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: isAOG ? '#ff3366' : Number(item.lastInspectionStatus) === 1 ? '#00ff88' : 'transparent', marginRight: 4, boxShadow: isAOG ? `0 0 8px #ff3366` : Number(item.lastInspectionStatus) === 1 ? `0 0 8px #00ff88` : 'none' }}></span>
-                          {formatInspectionStatus(item.lastInspectionStatus)}
-                        </td>
-                        <td style={{ borderBottom: "1px solid rgba(255,255,255,0.05)", padding: '12px 8px', textAlign: 'center' }}>
-                          <button
-                            className="avi-btn"
-                            onClick={() => {
-                              const baseUrl = `${window.location.origin}${window.location.pathname}`;
-                              const url = `${baseUrl}#/?lookup=${encodeURIComponent(item.code)}`;
-                              navigator.clipboard.writeText(url);
-                              alert('✅ Đã copy link tra cứu!\n\n' + url + '\n\nPaste vào browser để xem kết quả.');
-                            }}
-                            style={{ padding: '6px 10px', fontSize: '0.8rem', background: 'rgba(0, 240, 255, 0.1)', border: '1px solid rgba(0, 240, 255, 0.5)', color: '#00f0ff', whiteSpace: 'nowrap' }}
-                            title="Copy link tra cứu mã QR"
-                          >
-                            QR 📱
-                          </button>
-                        </td>
-                      </tr>
+                      <React.Fragment key={itemId}>
+                        <tr style={{ background: isAOG ? 'rgba(255, 51, 102, 0.05)' : 'transparent', transition: 'background 0.2s' }} onMouseOver={(e) => e.currentTarget.style.background = 'rgba(0, 240, 255, 0.05)'} onMouseOut={(e) => e.currentTarget.style.background = isAOG ? 'rgba(255, 51, 102, 0.05)' : 'transparent'}>
+                          <td style={{ borderBottom: "1px solid rgba(255,255,255,0.05)", padding: '12px 8px', fontWeight: 'bold' }}>{item.partNumber}</td>
+                          <td style={{ borderBottom: "1px solid rgba(255,255,255,0.05)", padding: '12px 8px', color: 'var(--color-primary)' }}>{item.serialNumber}</td>
+                          <td style={{ borderBottom: "1px solid rgba(255,255,255,0.05)", padding: '12px 8px' }}>{item.location}</td>
+                          <td style={{ borderBottom: "1px solid rgba(255,255,255,0.05)", padding: '12px 8px', color: isLocked ? '#ff3366' : '#00ff88' }}>
+                            {isLocked ? "🔒 Locked" : "🟢 Active"}
+                          </td>
+                          <td style={{ borderBottom: "1px solid rgba(255,255,255,0.05)", padding: '12px 8px', color: isAOG ? '#ff3366' : Number(item.lastInspectionStatus) === 1 ? '#00ff88' : 'inherit', fontWeight: isAOG || Number(item.lastInspectionStatus) === 1 ? 'bold' : 'normal' }}>
+                            <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: isAOG ? '#ff3366' : Number(item.lastInspectionStatus) === 1 ? '#00ff88' : 'transparent', marginRight: 4, boxShadow: isAOG ? `0 0 8px #ff3366` : Number(item.lastInspectionStatus) === 1 ? `0 0 8px #00ff88` : 'none' }}></span>
+                            {formatInspectionStatus(item.lastInspectionStatus)}
+                          </td>
+                          <td style={{ borderBottom: "1px solid rgba(255,255,255,0.05)", padding: '12px 8px', textAlign: 'center' }}>
+                            <button
+                              className="avi-btn"
+                              onClick={() => {
+                                setQrVisible(prev => ({ ...prev, [itemId]: !prev[itemId] }));
+                                const baseUrl = `${window.location.origin}${window.location.pathname}`;
+                                const url = `${baseUrl}#/?lookup=${encodeURIComponent(item.code)}`;
+                                navigator.clipboard.writeText(url);
+                              }}
+                              style={{ padding: '6px 10px', fontSize: '0.8rem', background: showQR ? 'rgba(0, 240, 255, 0.3)' : 'rgba(0, 240, 255, 0.1)', border: '1px solid rgba(0, 240, 255, 0.5)', color: '#00f0ff', whiteSpace: 'nowrap' }}
+                              title="Hiển thị mã QR và Copy Link"
+                            >
+                              QR 📱
+                            </button>
+                          </td>
+                        </tr>
+                        {showQR && (
+                          <tr>
+                            <td colSpan="6" style={{ background: 'rgba(5, 15, 30, 0.95)', borderBottom: "1px solid rgba(0, 240, 255, 0.2)", padding: '20px 10px' }}>
+                              <div style={{ display: 'flex', justifyContent: 'center' }}>
+                                <div style={{width: '100%', maxWidth: '500px'}}>
+                                  <ItemQRCode item={item} />
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </React.Fragment>
                     );
                   })}
                 </tbody>

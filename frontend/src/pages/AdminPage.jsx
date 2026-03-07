@@ -91,6 +91,7 @@ export function AdminPage({ wallet, roles, contractAddress, onRoleChanged }) {
 
   useEffect(() => {
     refreshAdminConfig().catch(() => null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, contractAddress]);
 
   return (

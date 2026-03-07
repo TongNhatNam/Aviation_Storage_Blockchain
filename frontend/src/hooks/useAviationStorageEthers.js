@@ -92,6 +92,34 @@ export function useAviationStorageEthers({ chainId }) {
     }
   }
 
+  async function scrapItem(code) {
+    const trimmedCode = String(code ?? "").trim();
+    if (!trimmedCode) throw new Error("Thiếu code.");
+
+    try {
+      const contract = await getSignerContract();
+      const tx = await contract.scrapItem(trimmedCode);
+      return tx.wait();
+    } catch (e) {
+      throw new Error(formatError(e));
+    }
+  }
+
+  async function demountItem(code, newLocation) {
+    const trimmedCode = String(code ?? "").trim();
+    const trimmedLocation = String(newLocation ?? "").trim();
+    if (!trimmedCode) throw new Error("Thiếu code.");
+    if (!trimmedLocation) throw new Error("Thiếu vị trí mới.");
+
+    try {
+      const contract = await getSignerContract();
+      const tx = await contract.demountItem(trimmedCode, trimmedLocation);
+      return tx.wait();
+    } catch (e) {
+      throw new Error(formatError(e));
+    }
+  }
+
   async function inspectItem({ code, status, notesHash }) {
     const trimmedCode = String(code ?? "").trim();
     const nStatus = Number(status);
@@ -186,6 +214,8 @@ export function useAviationStorageEthers({ chainId }) {
     registerItem,
     transferItem,
     updateLocation,
+    scrapItem,
+    demountItem,
     inspectItem,
     getItem,
     listItems,

@@ -95,7 +95,7 @@ export function HomePage({ wallet, roles }) {
               gap: '24px',
               marginTop: '16px'
             }}>
-              {ROLES_INFO.map(role => (
+              {ROLES_INFO.map((role, index) => (
                 <div key={role.id} style={{
                   background: 'rgba(5, 15, 30, 0.95)',
                   border: '1px solid rgba(0, 240, 255, 0.15)',
@@ -106,7 +106,8 @@ export function HomePage({ wallet, roles }) {
                   alignItems: 'center',
                   textAlign: 'center',
                   boxShadow: '0 4px 12px rgba(0, 0, 0, 0.4)',
-                  transform: 'translateZ(0)' // Force GPU acceleration
+                  transform: 'translateZ(0)', // Force GPU acceleration
+                  animation: index % 2 === 0 ? 'float 6s ease-in-out infinite' : 'float-delayed 7s ease-in-out infinite'
                 }}>
                   <div style={{
                     width: '120px',
@@ -116,7 +117,8 @@ export function HomePage({ wallet, roles }) {
                     border: '2px solid var(--color-primary)',
                     boxShadow: '0 0 10px rgba(0, 240, 255, 0.3)',
                     marginBottom: '16px',
-                    transform: 'translateZ(0)' // Force GPU acceleration
+                    transform: 'translateZ(0)', // Force GPU acceleration
+                    animation: 'neon-pulse 3s ease-in-out infinite'
                   }}>
                     <img
                       src={role.imgSrc}

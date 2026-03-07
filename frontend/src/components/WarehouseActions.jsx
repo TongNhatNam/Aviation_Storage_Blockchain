@@ -56,7 +56,10 @@ export function WarehouseActions({ api, disabled, onActionDone }) {
     location: "",
     certificateType: "CO",
     metadataHash: "",
+    quantity: 1,
   });
+
+  const [generatedCodes, setGeneratedCodes] = useState([]);
 
   const [transferForm, setTransferForm] = useState({
     code: "",
@@ -93,6 +96,7 @@ export function WarehouseActions({ api, disabled, onActionDone }) {
     if (activeTab === "TRANSFER" || activeTab === "UPDATE") {
       fetchItems();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, canUseApi]);
 
   useEffect(() => {
@@ -133,6 +137,7 @@ export function WarehouseActions({ api, disabled, onActionDone }) {
       }
     } catch (e) {
       setMessage(formatError(e));
+      setGeneratedCodes([]);
     } finally {
       setBusy(false);
     }
@@ -143,7 +148,9 @@ export function WarehouseActions({ api, disabled, onActionDone }) {
     setRegisterForm((prev) => {
       const updated = { ...prev, [field]: value };
       if (updated.partNumber && updated.serialNumber) {
-        updated.code = `${updated.partNumber}-${updated.serialNumber}`;
+        updated.code = updated.quantity > 1 
+          ? `${updated.partNumber}-${updated.serialNumber}-...`
+          : `${updated.partNumber}-${updated.serialNumber}`;
         // Auto-generate IPFS hash
         const certType = updated.certificateType || 'CO';
         const timestamp = Date.now().toString(36);
@@ -190,6 +197,30 @@ export function WarehouseActions({ api, disabled, onActionDone }) {
               placeholder="Mã SN (VD: SN001)"
               value={registerForm.serialNumber}
               onChange={(e) => handlePnSnChange("serialNumber", e.target.value)}
+            />
+            <input
+              type="number"
+              min="1"
+              max="50"
+              placeholder="Số lượng (Mặc định 1)"
+              value={registerForm.quantity}
+              onChange={(e) => {
+                const qty = parseInt(e.target.value) || 1;
+                setRegisterForm((prev) => {
+                  const updated = { ...prev, quantity: qty };
+                  if (updated.partNumber && updated.serialNumber) {
+                    updated.code = qty > 1 
+                      ? `${updated.partNumber}-${updated.serialNumber}-...`
+                      : `${updated.partNumber}-${updated.serialNumber}`;
+                  }
+                  return updated;
+                });
+              }}
+              style={{
+                background: 'rgba(5, 15, 30, 0.8)',
+                color: '#fff',
+                border: '1px solid rgba(0, 240, 255, 0.4)'
+              }}
             />
             <input
               className="avi-span2"
@@ -256,40 +287,66 @@ export function WarehouseActions({ api, disabled, onActionDone }) {
             />
           </div>
           <div className="avi-inline" style={{ marginTop: 10 }}>
-            <button className="avi-btn avi-btn--primary" disabled={!canUseApi || busy} onClick={() => run(() => api.registerItem({ ...registerForm }))}>
-              Đăng ký Tài sản số
+            <button className="avi-btn avi-btn--primary" disabled={!canUseApi || busy} onClick={() => run(async () => {
+              const qty = Math.max(1, registerForm.quantity || 1);
+              const codes = [];
+              let lastReceipt = null;
+
+              if (qty === 1) {
+                lastReceipt = await api.registerItem({ ...registerForm });
+                codes.push(registerForm.code);
+              } else {
+                for (let i = 1; i <= qty; i++) {
+                  const newSn = `${registerForm.serialNumber}-${i}`;
+                  const newCode = `${registerForm.partNumber}-${newSn}`;
+                  const timestamp = Date.now().toString(36);
+                  const newHash = `ipfs://Qm${registerForm.certificateType}-${registerForm.partNumber}-${newSn}-${timestamp}`;
+                  
+                  lastReceipt = await api.registerItem({
+                    ...registerForm,
+                    serialNumber: newSn,
+                    code: newCode,
+                    metadataHash: newHash
+                  });
+                  codes.push(newCode);
+                }
+              }
+              setGeneratedCodes(codes);
+              return lastReceipt;
+            })}>
+              Đăng ký Tài sản số {registerForm.quantity > 1 ? `(x${registerForm.quantity})` : ''}
             </button>
             {message ? <div className={`avi-msg ${message === "OK" ? "avi-msg--ok" : "avi-msg--err"}`}>{message}</div> : null}
           </div>
           <TransactionInfo receipt={txReceipt} />
-          {message === "OK" && registerForm.code && (
+          {message === "OK" && generatedCodes.length > 0 && (
             <div style={{ marginTop: 16 }}>
-              <div style={{ color: 'var(--color-success)', marginBottom: 12, fontWeight: 'bold' }}>✅ Đăng ký thành công! QR Code của phụ tùng:</div>
-              <div className="avi-card" style={{ background: '#fff', padding: 20, textAlign: 'center', maxWidth: 300 }}>
-                <div style={{ marginBottom: 12 }}>
-                  <QRCodeSVG
-                    value={(() => {
-                      const baseUrl = `${window.location.origin}${window.location.pathname}`;
-                      return `${baseUrl}#/?lookup=${encodeURIComponent(registerForm.code)}`;
-                    })()}
-                    size={200}
-                    level="H"
-                    includeMargin={true}
-                  />
-                </div>
-                <div style={{ color: '#000', fontWeight: 'bold', fontSize: '0.9rem', marginBottom: 8 }}>{registerForm.code}</div>
-                <button
-                  className="avi-btn avi-btn--primary"
-                  onClick={() => {
-                    const baseUrl = `${window.location.origin}${window.location.pathname}`;
-                    const url = `${baseUrl}#/?lookup=${encodeURIComponent(registerForm.code)}`;
-                    navigator.clipboard.writeText(url);
-                    alert('✅ Đã copy link tra cứu!\n\n' + url + '\n\nPaste vào browser để xem kết quả.');
-                  }}
-                  style={{ width: '100%', marginTop: 8 }}
-                >
-                  📋 Copy Link Tra Cứu
-                </button>
+              <div style={{ color: 'var(--color-success)', marginBottom: 12, fontWeight: 'bold' }}>
+                ✅ Đăng ký thành công {generatedCodes.length} QR Code!
+              </div>
+              <div style={{ display: 'flex', gap: 16, overflowX: 'auto', paddingBottom: 16 }}>
+                {generatedCodes.map(code => {
+                  const baseUrl = `${window.location.origin}${window.location.pathname}`;
+                  const url = `${baseUrl}#/?lookup=${encodeURIComponent(code)}`;
+                  return (
+                    <div key={code} className="avi-card" style={{ background: '#fff', padding: 16, textAlign: 'center', minWidth: 200, flexShrink: 0 }}>
+                      <div style={{ marginBottom: 12, display: 'flex', justifyContent: 'center' }}>
+                        <QRCodeSVG value={url} size={150} level="H" includeMargin={true} />
+                      </div>
+                      <div style={{ color: '#000', fontWeight: 'bold', fontSize: '0.8rem', marginBottom: 8, wordBreak: 'break-all' }}>{code}</div>
+                      <button
+                        className="avi-btn avi-btn--primary"
+                        onClick={() => {
+                          navigator.clipboard.writeText(url);
+                          alert('✅ Đã copy link tra cứu!\n\n' + url);
+                        }}
+                        style={{ width: '100%', fontSize: '0.8rem', padding: '6px' }}
+                      >
+                        📋 Copy Link
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -371,12 +428,29 @@ export function WarehouseActions({ api, disabled, onActionDone }) {
               </select>
             )}
 
-            <input
-              className="avi-span2"
-              placeholder="Vị trí kệ mới (VD: Shelf A-12)"
-              value={updateLocationForm.newLocation}
-              onChange={(e) => setUpdateLocationForm((s) => ({ ...s, newLocation: e.target.value }))}
-            />
+            {warehouseLocations?.length ? (
+              <select
+                className="avi-span2"
+                value={updateLocationForm.newLocation}
+                onChange={(e) => setUpdateLocationForm((s) => ({ ...s, newLocation: e.target.value }))}
+                style={{ cursor: "pointer" }}
+                disabled={loadingCatalog}
+              >
+                <option value="" disabled>--- Vị trí kệ mới (VD: Shelf A-12) ---</option>
+                {warehouseLocations.map((loc) => (
+                  <option key={loc} value={loc} style={{ color: "#000" }}>
+                    {loc}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <input
+                className="avi-span2"
+                placeholder="Vị trí kệ mới (VD: Shelf A-12)"
+                value={updateLocationForm.newLocation}
+                onChange={(e) => setUpdateLocationForm((s) => ({ ...s, newLocation: e.target.value }))}
+              />
+            )}
           </div>
           <div className="avi-inline" style={{ marginTop: 10 }}>
             <button className="avi-btn" disabled={!canUseApi || busy || !updateLocationForm.code || !updateLocationForm.newLocation} onClick={() => run(() => api.updateLocation(updateLocationForm))}>

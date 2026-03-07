@@ -4,7 +4,8 @@ library BaseItem {
   enum InspectionStatus {
     Unknown,
     Serviceable,   // Tương đương Passed - Dùng tốt
-    Unserviceable  // Tương đương Failed - Hỏng / Red-Tag
+    Unserviceable, // Tương đương Failed - Hỏng / Red-Tag
+    Scrapped       // Tiêu hủy, không thể sử dụng nữa
   }
 
   struct AuditRecord {

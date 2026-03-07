@@ -398,4 +398,67 @@ contract AviationStorage is AviationAccessControl {
 
     emit ItemInspected(itemId, status, notesHash, msg.sender);
   }
+
+  event ItemScrapped(
+    bytes32 indexed itemId,
+    address indexed actor
+  );
+
+  event ItemDemounted(
+    bytes32 indexed itemId,
+    string newLocation,
+    address indexed actor
+  );
+
+  function scrapItem(string calldata code) external onlyEngineer {
+    bytes32 itemId = computeItemId(code);
+    require(_exists[itemId], "ITEM_NOT_FOUND");
+    
+    BaseItem.Item storage item = _items[itemId];
+    require(!item.isFinalized, "ITEM_FINALIZED");
+    require(item.lastInspectionStatus != BaseItem.InspectionStatus.Scrapped, "ALREADY_SCRAPPED");
+
+    item.lastInspectionStatus = BaseItem.InspectionStatus.Scrapped;
+    item.isFinalized = true;
+    item.updatedAt = block.timestamp;
+    item.lastUpdatedBy = msg.sender;
+
+    item.history.push(BaseItem.AuditRecord({
+      timestamp: block.timestamp,
+      actor: msg.sender,
+      action: "SCRAP",
+      details: "Item permanently scrapped/destroyed."
+    }));
+
+    emit ItemScrapped(itemId, msg.sender);
+  }
+
+  function demountItem(string calldata code, string calldata newLocation) external onlyEngineer {
+    bytes32 itemId = computeItemId(code);
+    require(_exists[itemId], "ITEM_NOT_FOUND");
+    require(bytes(newLocation).length != 0, "EMPTY_LOCATION");
+
+    BaseItem.Item storage item = _items[itemId];
+    require(item.isFinalized, "NOT_ON_AIRCRAFT");
+    require(item.lastInspectionStatus != BaseItem.InspectionStatus.Scrapped, "ITEM_SCRAPPED");
+
+    if (policyRequireLocationWhitelisted) {
+      require(_warehouseLocationEnabled[_key(newLocation)], "LOCATION_NOT_ALLOWED");
+    }
+
+    item.isFinalized = false;
+    item.location = newLocation;
+    item.lastInspectionStatus = BaseItem.InspectionStatus.Unserviceable; // Force re-inspection
+    item.updatedAt = block.timestamp;
+    item.lastUpdatedBy = msg.sender;
+
+    item.history.push(BaseItem.AuditRecord({
+      timestamp: block.timestamp,
+      actor: msg.sender,
+      action: "DEMOUNT",
+      details: string(abi.encodePacked("Removed from aircraft to: ", newLocation))
+    }));
+
+    emit ItemDemounted(itemId, newLocation, msg.sender);
+  }
 }
