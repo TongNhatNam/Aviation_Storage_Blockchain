@@ -1,0 +1,110 @@
+.avi-qr-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.avi-qr-modal-content {
+  background: var(--bg-card);
+  border: 1px solid var(--neon-blue);
+  border-radius: 12px;
+  width: 90%;
+  max-width: 450px;
+  padding: 24px;
+  box-shadow: 0 0 30px rgba(0, 240, 255, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.avi-qr-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.2);
+  padding-bottom: 12px;
+}
+
+.avi-qr-modal-header h3 {
+  margin: 0;
+  color: var(--color-radar-green);
+  font-family: var(--font-mono);
+  font-size: 1.1rem;
+  letter-spacing: 1px;
+}
+
+.avi-qr-close-btn {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 28px;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  transition: color 0.2s;
+}
+
+.avi-qr-close-btn:hover {
+  color: #ff4757;
+}
+
+.avi-qr-scanner-wrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  background: #000;
+  border-radius: 8px;
+  border: 2px solid rgba(0, 240, 255, 0.3);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avi-qr-scanner-wrapper::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--color-radar-green);
+  box-shadow: 0 0 10px var(--color-radar-green);
+  animation: scanline 2s linear infinite;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.avi-qr-error {
+  text-align: center;
+  color: #ff4757;
+  padding: 20px;
+  font-size: 0.9rem;
+}
+
+.avi-qr-modal-footer {
+  text-align: center;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes scanline {
+  0% { top: 0%; opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}

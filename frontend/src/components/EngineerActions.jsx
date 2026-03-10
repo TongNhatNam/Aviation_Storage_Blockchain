@@ -3,6 +3,7 @@ import { SectionCard } from "./SectionCard.jsx";
 import { TransactionInfo } from "./TransactionInfo.jsx";
 import { formatError } from "../utils/error.js";
 import { isItemLocked } from "../utils/itemState.js";
+import QRScannerModal from "./QRScannerModal.jsx";
 
 const FALLBACK_WAREHOUSE_LOCATIONS = [
   "HAN-WH-A1",
@@ -30,6 +31,9 @@ export function EngineerActions({ api, disabled, onActionDone }) {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState(undefined);
   const [txReceipt, setTxReceipt] = useState(undefined);
+  const [scannerOpen, setScannerOpen] = useState(false);
+  const [scanTarget, setScanTarget] = useState(null); // 'INSPECT' | 'DEMOUNT'
+
 
   const [inspectForm, setInspectForm] = useState({
     code: "",
@@ -139,21 +143,50 @@ export function EngineerActions({ api, disabled, onActionDone }) {
     }
   }
 
+  const handleScanSuccess = (code) => {
+    if (scanTarget === "INSPECT") {
+      setInspectForm(s => ({ ...s, code }));
+    } else if (scanTarget === "DEMOUNT") {
+      setDemountForm(s => ({ ...s, code }));
+    }
+  };
+
+  const openScanner = (target) => {
+    setScanTarget(target);
+    setScannerOpen(true);
+  };
+
   return (
     <div className="avi-grid">
+      <QRScannerModal 
+        isOpen={scannerOpen} 
+        onClose={() => setScannerOpen(false)} 
+        onScanSuccess={handleScanSuccess} 
+      />
       <SectionCard title="Kiểm định Kỹ thuật" subtitle="Cập nhật trạng thái kiểm định và cấp biên bản (hash)">
         <div className="avi-formGrid">
-          <input
-            placeholder="Mã (code)"
-            value={inspectForm.code}
-            onChange={(e) => setInspectForm((s) => ({ ...s, code: e.target.value }))}
-            style={{
-              background: 'rgba(5, 15, 30, 0.8)',
-              border: '1px solid rgba(0, 240, 255, 0.4)',
-              color: '#00f0ff',
-              fontFamily: 'Space Mono, monospace'
-            }}
-          />
+          <div style={{ display: 'flex', gap: '8px', gridColumn: 'span 2' }}>
+            <input
+              placeholder="Mã (code)"
+              value={inspectForm.code}
+              onChange={(e) => setInspectForm((s) => ({ ...s, code: e.target.value }))}
+              style={{
+                flex: 1,
+                background: 'rgba(5, 15, 30, 0.8)',
+                border: '1px solid rgba(0, 240, 255, 0.4)',
+                color: '#00f0ff',
+                fontFamily: 'Space Mono, monospace'
+              }}
+            />
+            <button 
+              className="avi-btn" 
+              onClick={() => openScanner('INSPECT')}
+              title="Quét mã bằng Camera"
+              style={{ padding: '0 16px', fontSize: '1.2rem' }}
+            >
+              📷
+            </button>
+          </div>
           <select
             value={inspectForm.status}
             onChange={(e) => {
@@ -321,17 +354,28 @@ export function EngineerActions({ api, disabled, onActionDone }) {
 
       <SectionCard title="Tháo dỡ Kỹ thuật (Demount)" subtitle="Danh sách thiết bị đang gắn trên máy bay (Locked)">
         <div className="avi-formGrid" style={{ marginBottom: 20 }}>
-            <input
-              placeholder="Mã (code)"
-              value={demountForm.code}
-              onChange={(e) => setDemountForm((s) => ({ ...s, code: e.target.value }))}
-              style={{
-                background: 'rgba(5, 15, 30, 0.8)',
-                border: '1px solid rgba(0, 240, 255, 0.4)',
-                color: '#00f0ff',
-                fontFamily: 'Space Mono, monospace'
-              }}
-            />
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <input
+                placeholder="Mã (code)"
+                value={demountForm.code}
+                onChange={(e) => setDemountForm((s) => ({ ...s, code: e.target.value }))}
+                style={{
+                  flex: 1,
+                  background: 'rgba(5, 15, 30, 0.8)',
+                  border: '1px solid rgba(0, 240, 255, 0.4)',
+                  color: '#00f0ff',
+                  fontFamily: 'Space Mono, monospace'
+                }}
+              />
+              <button 
+                className="avi-btn" 
+                onClick={() => openScanner('DEMOUNT')}
+                title="Quét mã bằng Camera"
+                style={{ padding: '0 16px', fontSize: '1.2rem' }}
+              >
+                📷
+              </button>
+            </div>
             <select
               value={demountForm.newLocation}
               onChange={(e) => setDemountForm((s) => ({ ...s, newLocation: e.target.value }))}

@@ -3,15 +3,19 @@ import { useState } from 'react';
 
 export function ItemQRCode({ item }) {
   const [showQR, setShowQR] = useState(false);
+  const [qrMode, setQrMode] = useState('text'); // 'text' hoặc 'link'
 
   if (!item) return null;
 
-  // Tự động lấy URL hiện tại của trình duyệt. 
-  // NẾU MUỐN ĐIỆN THOẠI QUÉT ĐƯỢC: Bạn phải mở web này trên máy tính bằng địa chỉ IP (VD: http://192.168.x.x:5173) 
-  // thay vì http://localhost:5173. Khi đó QR code sẽ sinh ra chứa IP mạng LAN nội bộ.
   const baseUrl = `${window.location.origin}${window.location.pathname}`;
-
   const lookupUrl = `${baseUrl}#/?lookup=${encodeURIComponent(item.code)}`;
+  
+  const statusText = Number(item.lastInspectionStatus) === 1 ? 'Serviceable' : Number(item.lastInspectionStatus) === 2 ? 'Unserviceable' : 'Pending';
+  
+  // Text đơn giản
+  const textData = `Code: ${item.code}\nPN: ${item.partNumber}\nSN: ${item.serialNumber}\nName: ${item.name}\nLocation: ${item.location}\nStatus: ${statusText}`;
+  
+  const qrValue = qrMode === 'text' ? textData : lookupUrl;
 
   return (
     <div style={{ marginTop: 16 }}>
@@ -32,17 +36,48 @@ export function ItemQRCode({ item }) {
           padding: 24,
           textAlign: 'center',
           boxShadow: '0 8px 32px rgba(0,0,0,0.8), 0 0 20px rgba(0, 240, 255, 0.2)',
-          maxWidth: 300,
+          maxWidth: 350,
           borderRadius: 12
         }}>
+          {/* Toggle QR Mode */}
+          <div style={{ marginBottom: 16, display: 'flex', gap: 8, justifyContent: 'center' }}>
+            <button
+              className="avi-btn"
+              onClick={() => setQrMode('text')}
+              style={{ 
+                padding: '8px 16px', 
+                fontSize: '0.85rem',
+                background: qrMode === 'text' ? 'rgba(0, 240, 255, 0.3)' : 'rgba(0, 240, 255, 0.05)',
+                border: `1px solid ${qrMode === 'text' ? 'rgba(0, 240, 255, 0.8)' : 'rgba(0, 240, 255, 0.3)'}`,
+                color: qrMode === 'text' ? '#00f0ff' : 'rgba(255,255,255,0.6)'
+              }}
+            >
+              📝 Text
+            </button>
+            <button
+              className="avi-btn"
+              onClick={() => setQrMode('link')}
+              style={{ 
+                padding: '8px 16px', 
+                fontSize: '0.85rem',
+                background: qrMode === 'link' ? 'rgba(0, 240, 255, 0.3)' : 'rgba(0, 240, 255, 0.05)',
+                border: `1px solid ${qrMode === 'link' ? 'rgba(0, 240, 255, 0.8)' : 'rgba(0, 240, 255, 0.3)'}`,
+                color: qrMode === 'link' ? '#00f0ff' : 'rgba(255,255,255,0.6)'
+              }}
+            >
+              🔗 Link
+            </button>
+          </div>
+
           <div style={{ marginBottom: 16, background: '#fff', padding: 12, borderRadius: 8, display: 'inline-block' }}>
             <QRCodeSVG
-              value={lookupUrl}
+              value={qrValue}
               size={200}
               level="H"
               includeMargin={false}
             />
           </div>
+          
           <div style={{
             color: '#00f0ff',
             fontSize: '1rem',
@@ -53,35 +88,57 @@ export function ItemQRCode({ item }) {
           }}>
             {item.code}
           </div>
+          
+          {qrMode === 'text' && (
+            <div style={{
+              color: 'rgba(255,255,255,0.8)',
+              fontSize: '0.85rem',
+              textAlign: 'left',
+              padding: '12px',
+              background: 'rgba(0, 0, 0, 0.5)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              borderRadius: 6,
+              fontFamily: 'monospace',
+              whiteSpace: 'pre-line'
+            }}>
+              {textData}
+            </div>
+          )}
+          
+          {qrMode === 'link' && (
+            <div style={{
+              color: 'rgba(255,255,255,0.6)',
+              fontSize: '0.75rem',
+              wordBreak: 'break-all',
+              padding: '10px',
+              background: 'rgba(0, 0, 0, 0.5)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              borderRadius: 6
+            }}>
+              {lookupUrl}
+            </div>
+          )}
+          
           <div style={{
-            color: 'rgba(255,255,255,0.6)',
-            fontSize: '0.75rem',
-            wordBreak: 'break-all',
-            padding: '10px',
-            background: 'rgba(0, 0, 0, 0.5)',
-            border: '1px solid rgba(255,255,255,0.1)',
-            borderRadius: 6
-          }}>
-            {lookupUrl}
-          </div>
-          <div style={{
-            marginTop: 16,
+            marginTop: 12,
             color: 'rgba(255,255,255,0.5)',
-            fontSize: '0.8rem',
-            textTransform: 'uppercase',
-            letterSpacing: 1
+            fontSize: '0.75rem',
+            lineHeight: 1.4
           }}>
-            Scan để tra cứu thông tin blockchain
+            {qrMode === 'text' && '📝 Quét để xem thông tin text'}
+            {qrMode === 'link' && '🔗 Quét để mở web (cần MetaMask)'}
           </div>
+          
           <button
             className="avi-btn avi-btn--primary"
             onClick={() => {
-              navigator.clipboard.writeText(lookupUrl);
-              alert('✅ Đã copy link tra cứu!\n\n' + lookupUrl + '\n\nPaste vào browser để xem kết quả.');
+              const textToCopy = qrMode === 'text' ? textData : lookupUrl;
+              navigator.clipboard.writeText(textToCopy);
+              alert('✅ Đã copy!\n\n' + textToCopy);
             }}
             style={{ width: '100%', marginTop: 12 }}
           >
-            📋 Copy Link Tra Cứu
+            📋 Copy {qrMode === 'text' ? 'Text' : 'Link'}
           </button>
         </div>
       )}

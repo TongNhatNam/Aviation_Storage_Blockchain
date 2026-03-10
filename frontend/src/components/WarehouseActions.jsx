@@ -4,6 +4,7 @@ import { SectionCard } from "./SectionCard.jsx";
 import { TransactionInfo } from "./TransactionInfo.jsx";
 import { formatError } from "../utils/error.js";
 import { isItemLocked } from "../utils/itemState.js";
+import QRScannerModal from "./QRScannerModal.jsx";
 
 const FALLBACK_DESTINATIONS = [
   "Aircraft VN-A899 (A350)",
@@ -43,6 +44,9 @@ export function WarehouseActions({ api, disabled, onActionDone }) {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState(undefined);
   const [txReceipt, setTxReceipt] = useState(undefined);
+  const [scannerOpen, setScannerOpen] = useState(false);
+  const [scanTarget, setScanTarget] = useState(null); // 'TRANSFER' | 'UPDATE'
+
 
   const [warehouseLocations, setWarehouseLocations] = useState([]);
   const [transferDestinations, setTransferDestinations] = useState([]);
@@ -160,10 +164,28 @@ export function WarehouseActions({ api, disabled, onActionDone }) {
     });
   };
 
+  const handleScanSuccess = (code) => {
+    if (scanTarget === "TRANSFER") {
+      setTransferForm(s => ({ ...s, code }));
+    } else if (scanTarget === "UPDATE") {
+      setUpdateLocationForm(s => ({ ...s, code }));
+    }
+  };
+
+  const openScanner = (target) => {
+    setScanTarget(target);
+    setScannerOpen(true);
+  };
+
   const serviceableItems = items.filter((i) => Number(i.item.lastInspectionStatus) === 1 && !isItemLocked(i.item));
 
   return (
     <div className="avi-grid">
+      <QRScannerModal 
+        isOpen={scannerOpen} 
+        onClose={() => setScannerOpen(false)} 
+        onScanSuccess={handleScanSuccess} 
+      />
       <div className="avi-tabs">
         <button
           onClick={() => setActiveTab("REGISTER")}
@@ -361,19 +383,28 @@ export function WarehouseActions({ api, disabled, onActionDone }) {
             ) : serviceableItems.length === 0 ? (
               <div className="avi-span2" style={{ color: "var(--color-danger)", fontStyle: "italic", padding: "12px", background: "rgba(255, 51, 102, 0.05)", borderRadius: "8px" }}>Không có thiết bị Serviceable nào trong kho. Hãy chờ Kỹ sư thẩm định!</div>
             ) : (
-              <select
-                value={transferForm.code}
-                onChange={(e) => setTransferForm((s) => ({ ...s, code: e.target.value }))}
-                className="avi-span2"
-                style={{ cursor: 'pointer' }}
-              >
-                <option value="" disabled>--- Chọn thiết bị (Serviceable) ---</option>
-                {serviceableItems.map((i) => (
-                  <option key={i.itemId} value={i.item.code} style={{ color: '#000' }}>
-                    [{i.item.code}] - {i.item.name} (Kho: {i.item.location})
-                  </option>
-                ))}
-              </select>
+              <div className="avi-span2" style={{ display: 'flex', gap: '8px' }}>
+                <select
+                  value={transferForm.code}
+                  onChange={(e) => setTransferForm((s) => ({ ...s, code: e.target.value }))}
+                  style={{ cursor: 'pointer', flex: 1 }}
+                >
+                  <option value="" disabled>--- Chọn thiết bị (Serviceable) ---</option>
+                  {serviceableItems.map((i) => (
+                    <option key={i.itemId} value={i.item.code} style={{ color: '#000' }}>
+                      [{i.item.code}] - {i.item.name} (Kho: {i.item.location})
+                    </option>
+                  ))}
+                </select>
+                <button 
+                  className="avi-btn" 
+                  onClick={() => openScanner('TRANSFER')}
+                  title="Quét mã bằng Camera"
+                  style={{ padding: '0 16px', fontSize: '1.2rem' }}
+                >
+                  📷
+                </button>
+              </div>
             )}
 
             <select
@@ -410,22 +441,31 @@ export function WarehouseActions({ api, disabled, onActionDone }) {
             ) : items.length === 0 ? (
               <div className="avi-span2" style={{ color: "rgba(255,255,255,0.5)", fontStyle: "italic", padding: "12px", background: "rgba(255,255,255,0.05)", borderRadius: "8px" }}>Kho đang trống.</div>
             ) : (
-              <select
-                value={updateLocationForm.code}
-                onChange={(e) => setUpdateLocationForm((s) => ({ ...s, code: e.target.value }))}
-                className="avi-span2"
-                style={{ cursor: 'pointer' }}
-              >
-                <option value="" disabled>--- Chọn thiết bị ---</option>
-                {items.map((i) => {
-                  const locked = isItemLocked(i.item);
-                  return (
-                    <option key={i.itemId} value={i.item.code} disabled={locked} style={{ color: '#000' }}>
-                      [{i.item.code}] - {i.item.name} ({formatInspectionStatus(i.item.lastInspectionStatus)}){locked ? " - LOCKED" : ""}
-                    </option>
-                  );
-                })}
-              </select>
+              <div className="avi-span2" style={{ display: 'flex', gap: '8px' }}>
+                <select
+                  value={updateLocationForm.code}
+                  onChange={(e) => setUpdateLocationForm((s) => ({ ...s, code: e.target.value }))}
+                  style={{ cursor: 'pointer', flex: 1 }}
+                >
+                  <option value="" disabled>--- Chọn thiết bị ---</option>
+                  {items.map((i) => {
+                    const locked = isItemLocked(i.item);
+                    return (
+                      <option key={i.itemId} value={i.item.code} disabled={locked} style={{ color: '#000' }}>
+                        [{i.item.code}] - {i.item.name} ({formatInspectionStatus(i.item.lastInspectionStatus)}){locked ? " - LOCKED" : ""}
+                      </option>
+                    );
+                  })}
+                </select>
+                <button 
+                  className="avi-btn" 
+                  onClick={() => openScanner('UPDATE')}
+                  title="Quét mã bằng Camera"
+                  style={{ padding: '0 16px', fontSize: '1.2rem' }}
+                >
+                  📷
+                </button>
+              </div>
             )}
 
             {warehouseLocations?.length ? (
