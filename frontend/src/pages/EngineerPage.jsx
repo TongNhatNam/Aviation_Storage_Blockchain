@@ -2,7 +2,7 @@ import { SectionCard } from "../components/SectionCard.jsx";
 import { EngineerActions } from "../components/EngineerActions.jsx";
 import { ItemViewer } from "../components/ItemViewer.jsx";
 
-export function EngineerPage({ wallet, roles, api }) {
+export function EngineerPage({ wallet, roles, api, addNotification }) {
   const ready = Boolean(wallet?.account) && wallet?.chainId === 1337;
   const allowed = Boolean(roles?.isEngineer) || Boolean(roles?.isAdmin);
 
@@ -45,7 +45,7 @@ export function EngineerPage({ wallet, roles, api }) {
       {ready && allowed && (
         <div className="avi-columns">
           <div className="avi-col">
-            <EngineerActions api={api} disabled={false} onActionDone={() => wallet?.refresh?.()} />
+            <EngineerActions api={api} disabled={false} onActionDone={() => wallet?.refresh?.()} addNotification={addNotification} />
           </div>
           <div className="avi-col">
             <SectionCard title="Tra cứu & danh sách" subtitle="Kiểm tra status và hash biên bản">

@@ -27,13 +27,15 @@ function formatInspectionStatus(value) {
   return "Unknown (Mới nhập/Pending)";
 }
 
-export function EngineerActions({ api, disabled, onActionDone }) {
+export function EngineerActions({ api, disabled, onActionDone, addNotification }) {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState(undefined);
   const [txReceipt, setTxReceipt] = useState(undefined);
   const [scannerOpen, setScannerOpen] = useState(false);
   const [scanTarget, setScanTarget] = useState(null); // 'INSPECT' | 'DEMOUNT'
 
+
+  const [activeTab, setActiveTab] = useState("INSPECT"); // INSPECT, DEMOUNT
 
   const [inspectForm, setInspectForm] = useState({
     code: "",
@@ -118,12 +120,15 @@ export function EngineerActions({ api, disabled, onActionDone }) {
     }
   }
 
-  // Tự động fetch khi component load hoặc khi canUseApi thay đổi
+  // Tự động fetch khi component load hoặc khi canUseApi hoặc activeTab thay đổi
   useEffect(() => {
-    fetchPendingItems();
-    fetchLockedItemsAndLocations();
+    if (activeTab === "INSPECT") {
+      fetchPendingItems();
+    } else if (activeTab === "DEMOUNT") {
+      fetchLockedItemsAndLocations();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [canUseApi]);
+  }, [canUseApi, activeTab]);
 
   async function run(action) {
     setMessage(undefined);
@@ -134,10 +139,17 @@ export function EngineerActions({ api, disabled, onActionDone }) {
       setMessage("OK");
       setTxReceipt(receipt);
       onActionDone?.();
+      if (typeof addNotification === 'function') {
+        addNotification('Giao dịch đã được xác nhận trên blockchain', 'success');
+      }
       await fetchPendingItems();
       await fetchLockedItemsAndLocations();
     } catch (e) {
-      setMessage(formatError(e));
+      const errorMsg = formatError(e);
+      setMessage(errorMsg);
+      if (typeof addNotification === 'function') {
+        addNotification(errorMsg, 'error');
+      }
     } finally {
       setBusy(false);
     }
@@ -163,8 +175,28 @@ export function EngineerActions({ api, disabled, onActionDone }) {
         onClose={() => setScannerOpen(false)} 
         onScanSuccess={handleScanSuccess} 
       />
-      <SectionCard title="Kiểm định Kỹ thuật" subtitle="Cập nhật trạng thái kiểm định và cấp biên bản (hash)">
-        <div className="avi-formGrid">
+
+      <div className="avi-tabs">
+        <button
+          onClick={() => setActiveTab("INSPECT")}
+          className={`avi-tab ${activeTab === "INSPECT" ? "active" : ""}`}
+          title="Kiểm định kỹ thuật và danh sách chờ">
+          <span className="avi-tabIcon avi-tabIcon--register" aria-hidden="true" />
+          <span>Kiểm định Kỹ thuật</span>
+        </button>
+        <button
+          onClick={() => setActiveTab("DEMOUNT")}
+          className={`avi-tab ${activeTab === "DEMOUNT" ? "active" : ""}`}
+          title="Tháo dỡ thiết bị từ máy bay">
+          <span className="avi-tabIcon avi-tabIcon--transfer" aria-hidden="true" />
+          <span>Tháo dỡ (Demount)</span>
+        </button>
+      </div>
+
+      {activeTab === "INSPECT" && (
+        <>
+          <SectionCard title="Kiểm định Kỹ thuật" subtitle="Quét mã QR hoặc chọn từ danh sách để kiểm định và cấp biên bản">
+            <div className="avi-formGrid">
           <div style={{ display: 'flex', gap: '8px', gridColumn: 'span 2' }}>
             <input
               placeholder="Mã (code)"
@@ -351,8 +383,11 @@ export function EngineerActions({ api, disabled, onActionDone }) {
           </div>
         )}
       </SectionCard>
+        </>
+      )}
 
-      <SectionCard title="Tháo dỡ Kỹ thuật (Demount)" subtitle="Danh sách thiết bị đang gắn trên máy bay (Locked)">
+      {activeTab === "DEMOUNT" && (
+        <SectionCard title="Tháo dỡ Kỹ thuật (Demount)" subtitle="Tháo dỡ thiết bị từ máy bay về kho">
         <div className="avi-formGrid" style={{ marginBottom: 20 }}>
             <div style={{ display: 'flex', gap: '8px' }}>
               <input
@@ -444,6 +479,7 @@ export function EngineerActions({ api, disabled, onActionDone }) {
           </div>
         )}
       </SectionCard>
+      )}
     </div>
   );
 }

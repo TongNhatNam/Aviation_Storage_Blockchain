@@ -1,4 +1,6 @@
 import { HashLink } from "../router/hashRouter.jsx";
+import { useState } from "react";
+import QRScannerModal from "./QRScannerModal.jsx";
 
 function shortAddress(value) {
   if (!value) return "-";
@@ -8,6 +10,18 @@ function shortAddress(value) {
 }
 
 export function AviationShell({ wallet, roles, library, onLibraryChange, children }) {
+  const [scannerOpen, setScannerOpen] = useState(false);
+
+  const handleScanSuccess = (code) => {
+    setScannerOpen(false);
+    let extractedCode = code.includes('lookup=') ? code.split('lookup=')[1].split('&')[0] : code;
+    try {
+      extractedCode = decodeURIComponent(extractedCode);
+    } catch (e) {
+      console.error('Decode error:', e);
+    }
+    window.location.hash = `#/?lookup=${encodeURIComponent(extractedCode)}`;
+  };
   const roleLabels = [];
   if (roles?.isAdmin) roleLabels.push({ label: "Quản trị", tone: "info" });
   if (roles?.isWarehouse) roleLabels.push({ label: "Kho hàng", tone: "ok" });
@@ -48,6 +62,12 @@ export function AviationShell({ wallet, roles, library, onLibraryChange, childre
           </HashLink>
         </nav>
 
+        <div style={{ padding: '12px', borderTop: '1px solid rgba(0, 240, 255, 0.1)', marginTop: 'auto' }}>
+          <button className="avi-btn avi-btn--primary" onClick={() => setScannerOpen(true)} style={{ width: '100%', marginBottom: 12 }}>
+            📷 Quét QR
+          </button>
+        </div>
+
         <div className="avi-wallet">
           <div className="avi-meta">
             <div className="avi-metaRow">
@@ -83,6 +103,7 @@ export function AviationShell({ wallet, roles, library, onLibraryChange, childre
         </div>
       </aside>
 
+      <QRScannerModal isOpen={scannerOpen} onClose={() => setScannerOpen(false)} onScanSuccess={handleScanSuccess} />
       <div className="avi-main-wrapper">
         <main className="avi-main">
           {!wallet?.isAvailable ? (

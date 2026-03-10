@@ -2,7 +2,7 @@ import { SectionCard } from "../components/SectionCard.jsx";
 import { WarehouseActions } from "../components/WarehouseActions.jsx";
 import { ItemViewer } from "../components/ItemViewer.jsx";
 
-export function WarehousePage({ wallet, roles, api }) {
+export function WarehousePage({ wallet, roles, api, addNotification }) {
   const ready = Boolean(wallet?.account) && wallet?.chainId === 1337;
   const allowed = Boolean(roles?.isWarehouse) || Boolean(roles?.isAdmin);
 
@@ -45,7 +45,7 @@ export function WarehousePage({ wallet, roles, api }) {
       {ready && allowed && (
         <div className="avi-columns">
           <div className="avi-col">
-            <WarehouseActions api={api} disabled={false} onActionDone={() => wallet?.refresh?.()} />
+            <WarehouseActions api={api} disabled={false} onActionDone={() => wallet?.refresh?.()} addNotification={addNotification} />
           </div>
           <div className="avi-col">
             <SectionCard title="Tra cứu & danh sách" subtitle="Xem lịch sử cập nhật và trạng thái kiểm định">

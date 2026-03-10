@@ -40,7 +40,7 @@ function formatInspectionStatus(value) {
   return "Unknown";
 }
 
-export function WarehouseActions({ api, disabled, onActionDone }) {
+export function WarehouseActions({ api, disabled, onActionDone, addNotification }) {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState(undefined);
   const [txReceipt, setTxReceipt] = useState(undefined);
@@ -136,12 +136,19 @@ export function WarehouseActions({ api, disabled, onActionDone }) {
       setMessage("OK");
       setTxReceipt(receipt);
       onActionDone?.();
+      if (typeof addNotification === 'function') {
+        addNotification('Giao dịch đã được xác nhận trên blockchain', 'success');
+      }
       if (activeTab !== "REGISTER") {
         await fetchItems();
       }
     } catch (e) {
-      setMessage(formatError(e));
+      const errorMsg = formatError(e);
+      setMessage(errorMsg);
       setGeneratedCodes([]);
+      if (typeof addNotification === 'function') {
+        addNotification(errorMsg, 'error');
+      }
     } finally {
       setBusy(false);
     }

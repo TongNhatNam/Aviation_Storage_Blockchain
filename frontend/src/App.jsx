@@ -6,6 +6,7 @@ import { useAviationStorageWeb3 } from "./hooks/useAviationStorageWeb3.js";
 import { useAviationRoles } from "./hooks/useAviationRoles.js";
 import { useMetaMask } from "./hooks/useMetaMask.js";
 import { useHashPath } from "./router/hashPath.js";
+import { useNotification, NotificationContainer } from "./components/Notifications.jsx";
 
 const HomePage = lazy(() => import("./pages/HomePage.jsx").then((m) => ({ default: m.HomePage })));
 const DashboardPage = lazy(() => import("./pages/DashboardPage.jsx").then((m) => ({ default: m.DashboardPage })));
@@ -52,6 +53,7 @@ function App() {
   const wallet = useMetaMask();
   const [library, setLibrary] = useState("ethers");
   const path = useHashPath();
+  const { notifications, addNotification, removeNotification } = useNotification();
 
   const ethersApi = useAviationStorageEthers({ chainId: wallet.chainId });
   const web3Api = useAviationStorageWeb3({ chainId: wallet.chainId });
@@ -78,13 +80,12 @@ function App() {
           {page === "home" ? <HomePage wallet={wallet} roles={roles} /> : null}
           {page === "testqr" ? <TestQRPage wallet={wallet} /> : null}
           {page === "dashboard" ? <DashboardPage api={api} /> : null}
-          {page === "warehouse" ? <WarehousePage wallet={wallet} roles={roles} api={api} /> : null}
-          {page === "engineer" ? <EngineerPage wallet={wallet} roles={roles} api={api} /> : null}
-          {page === "admin" ? (
-            <AdminPage wallet={wallet} roles={roles} contractAddress={contractAddress} onRoleChanged={() => roles.refresh()} />
-          ) : null}
+          {page === "warehouse" ? <WarehousePage wallet={wallet} roles={roles} api={api} addNotification={addNotification} /> : null}
+          {page === "engineer" ? <EngineerPage wallet={wallet} roles={roles} api={api} addNotification={addNotification} /> : null}
+          {page === "admin" ? <AdminPage wallet={wallet} roles={roles} contractAddress={contractAddress} onRoleChanged={() => roles.refresh()} api={api} addNotification={addNotification} /> : null}
         </Suspense>
       </AviationShell>
+      <NotificationContainer notifications={notifications} onRemove={removeNotification} />
     </ErrorBoundary>
   );
 }
