@@ -1,11 +1,11 @@
 import { useEffect, useState, useRef } from "react";
 import { ethers } from "ethers";
-import { useAviationStorageEthers } from "../hooks/useAviationStorageEthers.js";
+import { useAviationStorage } from "../hooks/useAviationStorage.js";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
 
 export function TestQRPage({ wallet }) {
-  const api = useAviationStorageEthers({ chainId: wallet.chainId });
+  const api = useAviationStorage({ chainId: wallet.chainId });
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
@@ -387,7 +387,7 @@ export function TestQRPage({ wallet }) {
             <div className="no-export" style={{ fontSize: '1.5rem' }}>🛡️</div>
             <div>
               <div style={{ color: '#00ff88', fontWeight: 'bold', fontSize: '0.9rem', marginBottom: 4 }}>Dữ liệu Blockchain hợp lệ</div>
-              <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem' }}>Bản ghi này được bảo vệ bởi mạng blockchain, không thể làm giả hoặc sửa đổi trái phép.</div>
+              <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem' }}>Bản ghi này được bảo vệ bởi mạng blockchain, không thể làm giả hoặc sửa đổi trái phép. Reload trang để xác nhận dữ liệu vẫn tồn tại trên blockchain.</div>
             </div>
           </div>
         </div>

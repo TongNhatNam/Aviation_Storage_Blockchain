@@ -27,7 +27,7 @@ function formatInspectionStatus(value) {
   return "Unknown (Mới nhập/Pending)";
 }
 
-export function EngineerActions({ api, disabled, onActionDone, addNotification }) {
+export function EngineerActions({ api, disabled, onActionDone, addNotification, onTabChange }) {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState(undefined);
   const [txReceipt, setTxReceipt] = useState(undefined);
@@ -42,6 +42,11 @@ export function EngineerActions({ api, disabled, onActionDone, addNotification }
     status: 1,
     notesHash: "",
   });
+
+  // Notify parent when tab changes
+  useEffect(() => {
+    onTabChange?.(activeTab);
+  }, [activeTab, onTabChange]);
 
   // Tự động tạo notesHash khi thay đổi code hoặc status
   useEffect(() => {

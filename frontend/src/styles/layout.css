@@ -5,12 +5,14 @@
   width: 100vw;
   height: 100vh;
   overflow: hidden;
+  /* Performance optimization */
+  contain: layout style;
 }
 
 .avi-sidebar {
   grid-column: 1 / 2;
   grid-row: 1 / 3;
-  background: rgba(10, 17, 40, 0.9);
+  background: rgba(10, 17, 40, 0.95);
   border-right: 1px solid var(--glass-border);
   display: flex;
   flex-direction: column;
@@ -18,6 +20,9 @@
   gap: 24px;
   z-index: 50;
   box-shadow: 4px 0 20px rgba(0, 0, 0, 0.4);
+  /* Performance optimization */
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
 }
 
 .avi-main-wrapper {
@@ -28,6 +33,11 @@
   position: relative;
   display: flex;
   flex-direction: column;
+  /* Smooth scrolling */
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  /* Performance optimization */
+  contain: layout style;
 }
 
 .avi-main {
@@ -43,7 +53,7 @@
 .avi-statusbar {
   grid-column: 2 / 3;
   grid-row: 2 / 3;
-  background: rgba(5, 8, 20, 0.95);
+  background: rgba(5, 8, 20, 0.98);
   border-top: 1px solid var(--glass-border);
   display: flex;
   align-items: center;
@@ -55,12 +65,16 @@
   letter-spacing: 0.5px;
   z-index: 50;
   gap: 16px;
+  /* Performance optimization */
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
 }
 
 .avi-statusbar-item {
   display: flex;
   align-items: center;
   gap: 6px;
+  transition: color 0.3s ease;
 }
 
 .avi-statusbar-item::before {
@@ -69,21 +83,24 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background-color: var(--color-radar-green);
+  background-color: var(--color-success);
+  transition: background-color 0.3s ease;
 }
 
 .avi-statusbar-item.error::before {
-  background-color: var(--color-danger-red);
+  background-color: var(--color-danger);
 }
 
 .avi-statusbar-item.warn::before {
-  background-color: var(--color-safety-orange);
+  background-color: var(--color-warning);
 }
 
 .avi-grid {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  /* Performance optimization */
+  contain: layout style;
 }
 
 .avi-columns {
@@ -91,6 +108,8 @@
   grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
   gap: 24px;
   align-items: start;
+  /* Performance optimization */
+  contain: layout style;
 }
 
 .avi-col {
@@ -110,6 +129,8 @@
   display: grid;
   gap: 16px;
   grid-template-columns: 1fr 1fr;
+  /* Performance optimization */
+  contain: layout style;
 }
 
 .avi-span2 {

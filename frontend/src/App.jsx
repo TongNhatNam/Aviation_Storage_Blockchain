@@ -1,8 +1,7 @@
 import { Component, Suspense, lazy, useMemo, useState } from "react";
 import "./styles/App.css";
 import { AviationShell } from "./components/AviationShell.jsx";
-import { useAviationStorageEthers } from "./hooks/useAviationStorageEthers.js";
-import { useAviationStorageWeb3 } from "./hooks/useAviationStorageWeb3.js";
+import { useAviationStorage } from "./hooks/useAviationStorage.js";
 import { useAviationRoles } from "./hooks/useAviationRoles.js";
 import { useMetaMask } from "./hooks/useMetaMask.js";
 import { useHashPath } from "./router/hashPath.js";
@@ -51,16 +50,13 @@ class ErrorBoundary extends Component {
 
 function App() {
   const wallet = useMetaMask();
-  const [library, setLibrary] = useState("ethers");
   const path = useHashPath();
   const { notifications, addNotification, removeNotification } = useNotification();
 
-  const ethersApi = useAviationStorageEthers({ chainId: wallet.chainId });
-  const web3Api = useAviationStorageWeb3({ chainId: wallet.chainId });
-  const api = library === "web3" ? web3Api : ethersApi;
-
-  const roles = useAviationRoles({ chainId: wallet.chainId, account: wallet.account });
+  const api = useAviationStorage({ chainId: wallet.chainId, isMockMode: wallet.isMockMode });
+  const roles = useAviationRoles({ chainId: wallet.chainId, account: wallet.account, isMockMode: wallet.isMockMode });
   const contractAddress = api.address;
+  const isMockMode = wallet.isMockMode;
 
   const page = useMemo(() => {
     const hash = window.location.hash;
@@ -75,7 +71,13 @@ function App() {
 
   return (
     <ErrorBoundary>
-      <AviationShell wallet={wallet} roles={roles} library={library} onLibraryChange={setLibrary}>
+      <div className="avi-floating-particles"></div>
+      <AviationShell wallet={wallet} roles={roles}>
+        {isMockMode && wallet.account && (
+          <div className="avi-alert avi-alert--info" style={{ margin: "10px 0" }}>
+            ⚠️ Chế độ Demo: Dữ liệu không được lưu trên blockchain. Để sử dụng blockchain thực, hãy chạy <code>npm run dev</code> và kết nối MetaMask.
+          </div>
+        )}
         <Suspense fallback={<div className="avi-alert avi-alert--warn">Đang tải trang…</div>}>
           {page === "home" ? <HomePage wallet={wallet} roles={roles} /> : null}
           {page === "testqr" ? <TestQRPage wallet={wallet} /> : null}

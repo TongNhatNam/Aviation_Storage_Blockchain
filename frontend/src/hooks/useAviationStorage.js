@@ -3,6 +3,7 @@ import abi from "../contracts/AviationStorage.abi.json";
 import deployedAddresses from "../contracts/deployedAddresses.json";
 import { formatError } from "../utils/error.js";
 import { mapWithConcurrency } from "../utils/async.js";
+import { createMockContract } from "../utils/mockContract.js";
 
 function getContractAddress(chainId) {
   if (!chainId) return undefined;
@@ -10,10 +11,16 @@ function getContractAddress(chainId) {
   return deployedAddresses?.[chainKey]?.AviationStorage;
 }
 
-export function useAviationStorageEthers({ chainId }) {
+export function useAviationStorage({ chainId, isMockMode: walletIsMockMode }) {
   const address = getContractAddress(chainId);
+  const mockContract = createMockContract();
+
+  function isMockMode() {
+    return walletIsMockMode === true;
+  }
 
   async function ensureDeployed(provider) {
+    if (isMockMode()) return;
     const code = await provider.getCode(address);
     if (!code || code === "0x") {
       throw new Error(
@@ -23,6 +30,7 @@ export function useAviationStorageEthers({ chainId }) {
   }
 
   async function getSignerContract() {
+    if (isMockMode()) return mockContract;
     if (!window.ethereum) throw new Error("Chưa có MetaMask.");
     if (!address) throw new Error("Chưa có address contract cho chainId này.");
 
@@ -33,6 +41,7 @@ export function useAviationStorageEthers({ chainId }) {
   }
 
   async function getReadContract() {
+    if (isMockMode()) return mockContract;
     if (!window.ethereum) throw new Error("Chưa có MetaMask.");
     if (!address) throw new Error("Chưa có address contract cho chainId này.");
 
@@ -155,8 +164,8 @@ export function useAviationStorageEthers({ chainId }) {
       const items = [];
       const n = Math.min(total, limit);
       const indices = Array.from({ length: n }, (_, i) => i);
-      const itemIds = await mapWithConcurrency(indices, 8, (i) => contract.itemIdAt(i));
-      const itemRaws = await mapWithConcurrency(itemIds, 8, (itemId) => contract.getItemById(itemId));
+      const itemIds = await Promise.all(indices.map((i) => contract.itemIdAt(i)));
+      const itemRaws = await Promise.all(itemIds.map((itemId) => contract.getItemById(itemId)));
 
       for (let i = 0; i < itemIds.length; i += 1) {
         items.push({ itemId: itemIds[i], item: itemRaws[i] });
@@ -211,6 +220,7 @@ export function useAviationStorageEthers({ chainId }) {
   return {
     address,
     isDeployedOnThisChain: Boolean(address),
+    isMockMode: isMockMode(),
     registerItem,
     transferItem,
     updateLocation,

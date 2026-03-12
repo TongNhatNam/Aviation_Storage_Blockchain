@@ -1,13 +1,38 @@
+import { useState, useCallback } from "react";
 import { SectionCard } from "../components/SectionCard.jsx";
 import { EngineerActions } from "../components/EngineerActions.jsx";
 import { ItemViewer } from "../components/ItemViewer.jsx";
+import { Breadcrumb } from "../components/Breadcrumb.jsx";
 
 export function EngineerPage({ wallet, roles, api, addNotification }) {
   const ready = Boolean(wallet?.account) && wallet?.chainId === 1337;
   const allowed = Boolean(roles?.isEngineer) || Boolean(roles?.isAdmin);
+  const [activeTab, setActiveTab] = useState("INSPECT");
+
+  const getBreadcrumbItems = () => {
+    const base = [
+      { label: "Trang chủ", link: "/" },
+      { label: "Kỹ sư kiểm định", link: "/engineer" }
+    ];
+    
+    if (ready && allowed) {
+      if (activeTab === "INSPECT") {
+        base.push({ label: "Kiểm định kỹ thuật" });
+      } else if (activeTab === "DEMOUNT") {
+        base.push({ label: "Tháo dỡ thiết bị" });
+      }
+    }
+    
+    return base;
+  };
+
+  const handleActionDone = useCallback(() => {
+    wallet?.refresh?.();
+  }, [wallet]);
 
   return (
     <div className="avi-grid">
+      <Breadcrumb items={getBreadcrumbItems()} />
       <SectionCard
         title={
           <span className="avi-pageTitle">
@@ -45,7 +70,7 @@ export function EngineerPage({ wallet, roles, api, addNotification }) {
       {ready && allowed && (
         <div className="avi-columns">
           <div className="avi-col">
-            <EngineerActions api={api} disabled={false} onActionDone={() => wallet?.refresh?.()} addNotification={addNotification} />
+            <EngineerActions api={api} disabled={false} onActionDone={handleActionDone} addNotification={addNotification} onTabChange={setActiveTab} />
           </div>
           <div className="avi-col">
             <SectionCard title="Tra cứu & danh sách" subtitle="Kiểm tra status và hash biên bản">

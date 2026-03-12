@@ -40,7 +40,7 @@ function formatInspectionStatus(value) {
   return "Unknown";
 }
 
-export function WarehouseActions({ api, disabled, onActionDone, addNotification }) {
+export function WarehouseActions({ api, disabled, onActionDone, addNotification, onTabChange }) {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState(undefined);
   const [txReceipt, setTxReceipt] = useState(undefined);
@@ -81,6 +81,11 @@ export function WarehouseActions({ api, disabled, onActionDone, addNotification 
   const [activeTab, setActiveTab] = useState("REGISTER"); // REGISTER, TRANSFER, UPDATE
   const [items, setItems] = useState([]);
   const [loadingItems, setLoadingItems] = useState(false);
+
+  // Notify parent when tab changes
+  useEffect(() => {
+    onTabChange?.(activeTab);
+  }, [activeTab, onTabChange]);
 
   async function fetchItems() {
     if (!canUseApi) return;

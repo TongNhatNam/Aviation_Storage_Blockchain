@@ -14,8 +14,9 @@ function lower(value) {
   return typeof value === "string" ? value.toLowerCase() : "";
 }
 
-export function useAviationRoles({ chainId, account }) {
+export function useAviationRoles({ chainId, account, isMockMode: walletIsMockMode }) {
   const address = useMemo(() => getContractAddress(chainId), [chainId]);
+  const isMockMode = walletIsMockMode === true;
   const [state, setState] = useState({
     loading: false,
     admin: undefined,
@@ -26,6 +27,19 @@ export function useAviationRoles({ chainId, account }) {
   });
 
   const refresh = useCallback(async () => {
+    if (isMockMode) {
+      // Mock mode: current account có tất cả quyền
+      setState({
+        loading: false,
+        admin: account,
+        isAdmin: true,
+        isWarehouse: true,
+        isEngineer: true,
+        error: undefined,
+      });
+      return;
+    }
+
     if (!window.ethereum) {
       setState((s) => ({ ...s, loading: false, error: "Chưa có MetaMask." }));
       return;
@@ -79,14 +93,15 @@ export function useAviationRoles({ chainId, account }) {
     } catch (e) {
       setState((s) => ({ ...s, loading: false, error: formatError(e) }));
     }
-  }, [account, address]);
+  }, [account, address, isMockMode]);
 
   useEffect(() => {
-    refresh().catch(() => { });
+    refresh().catch(() => {});
   }, [refresh]);
 
   return {
     address,
+    isMockMode,
     ...state,
     refresh,
   };

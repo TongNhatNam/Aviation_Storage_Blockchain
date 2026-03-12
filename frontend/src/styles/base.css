@@ -6,37 +6,80 @@ button {
 
 input,
 select {
-  padding: 10px 14px;
-  border: 1px solid rgba(0, 102, 255, 0.3);
-  border-radius: 6px;
-  background: rgba(0, 0, 0, 0.4);
+  padding: 12px 16px;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--border-radius-sm);
+  background: rgba(10, 15, 28, 0.8);
   color: #fff;
   outline: none;
-  font-size: 13px;
-  transition: all 0.2s;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+  font-size: 14px;
+  transition: all 0.2s ease;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+  position: relative;
+  /* Performance optimizations */
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
 }
 
 input:focus,
 select:focus {
-  border-color: var(--color-aviation-blue);
-  background: rgba(0, 0, 0, 0.6);
-  box-shadow: 0 0 0 2px rgba(0, 102, 255, 0.2), inset 0 2px 4px rgba(0, 0, 0, 0.2);
+  border-color: var(--color-primary);
+  background: rgba(10, 15, 28, 0.95);
+  box-shadow: 0 0 0 2px rgba(0, 240, 255, 0.2);
+  transform: translate3d(0, -1px, 0);
 }
 
 input::placeholder {
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.4);
+  font-style: italic;
+  transition: color 0.3s ease;
+}
+
+input:focus::placeholder {
+  color: rgba(255, 255, 255, 0.6);
 }
 
 input[type="checkbox"] {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   padding: 0;
   border-radius: 4px;
-  border: 1px solid rgba(0, 240, 255, 0.25);
-  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--color-primary);
+  background: rgba(10, 15, 28, 0.8);
   box-shadow: none;
-  accent-color: rgba(0, 240, 255, 0.85);
+  accent-color: var(--color-primary);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+input[type="checkbox"]:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.4);
+}
+
+input[type="number"] {
+  font-family: var(--font-mono);
+}
+
+select {
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%2300F0FF' viewBox='0 0 24 24'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+  padding-right: 40px;
+  appearance: none;
+}
+
+select:hover {
+  transform: translate3d(0, -1px, 0);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+select option {
+  background: var(--bg-dark);
+  color: #fff;
+  padding: 8px;
 }
 
 table {

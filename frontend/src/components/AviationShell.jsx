@@ -9,7 +9,7 @@ function shortAddress(value) {
   return `${s.slice(0, 6)}…${s.slice(-4)}`;
 }
 
-export function AviationShell({ wallet, roles, library, onLibraryChange, children }) {
+export function AviationShell({ wallet, roles, children }) {
   const [scannerOpen, setScannerOpen] = useState(false);
 
   const handleScanSuccess = (code) => {
@@ -89,10 +89,6 @@ export function AviationShell({ wallet, roles, library, onLibraryChange, childre
           </div>
 
           <div className="avi-actions">
-            <select className="avi-select" value={library} onChange={(e) => onLibraryChange(e.target.value)}>
-              <option value="ethers">Library: Ethers</option>
-              <option value="web3">Library: Web3</option>
-            </select>
             <button className="avi-btn" onClick={wallet?.connect} disabled={!wallet?.isAvailable}>
               Kết nối Ví
             </button>

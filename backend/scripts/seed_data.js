@@ -85,19 +85,29 @@ async function sendTransaction({ publicClient, from, to, data, value }) {
 
 function readDeployments() {
   const deploymentsPath = path.join(__dirname, "..", "deployments.json");
-  if (!fs.existsSync(deploymentsPath)) {
+  const normalizedPath = path.normalize(deploymentsPath);
+  const baseDir = path.normalize(path.join(__dirname, ".."));
+  if (!normalizedPath.startsWith(baseDir)) {
+    throw new Error("Invalid path: path traversal detected");
+  }
+  if (!fs.existsSync(normalizedPath)) {
     return {};
   }
-  return JSON.parse(fs.readFileSync(deploymentsPath, "utf8"));
+  return JSON.parse(fs.readFileSync(normalizedPath, "utf8"));
 }
 
 function upsertDeployments({ deployments, chainId, contractName, address }) {
   const deploymentsPath = path.join(__dirname, "..", "deployments.json");
+  const normalizedPath = path.normalize(deploymentsPath);
+  const baseDir = path.normalize(path.join(__dirname, ".."));
+  if (!normalizedPath.startsWith(baseDir)) {
+    throw new Error("Invalid path: path traversal detected");
+  }
   const chainKey = String(chainId);
   const next = deployments ?? {};
   next[chainKey] = next[chainKey] ?? {};
   next[chainKey][contractName] = address;
-  fs.writeFileSync(deploymentsPath, JSON.stringify(next, null, 2));
+  fs.writeFileSync(normalizedPath, JSON.stringify(next, null, 2));
   return next;
 }
 
@@ -241,7 +251,7 @@ async function main() {
     });
     if (exists) return;
 
-    await sendTransaction({
+    const receipt = await sendTransaction({
       publicClient,
       from: warehouseAccount,
       to: aviationStorageAddress,
@@ -251,6 +261,8 @@ async function main() {
         args: [code, partNumber, serialNumber, name, location, metadataHash],
       }),
     });
+    
+    console.log(`✅ Registered ${code} - TX: ${receipt.transactionHash}`);
   }
 
   // 1. Nhập lốp máy bay A320
@@ -274,7 +286,7 @@ async function main() {
   });
 
   // 3. Kỹ sư kiểm định trạng thái lốp báo hỏng (Unserviceable = 2)
-  await sendTransaction({
+  const inspectTireReceipt = await sendTransaction({
     publicClient,
     from: engineerAccount,
     to: aviationStorageAddress,
@@ -284,9 +296,10 @@ async function main() {
       args: ["TIRE-A320-SN001", 2, "ipfs://inspection-failed-tire-001"],
     }),
   });
+  console.log(`✅ Inspected TIRE-A320-SN001 (Unserviceable) - TX: ${inspectTireReceipt.transactionHash}`);
 
   // 4. Kỹ sư kiểm tra cụm điều khiển báo tốt (Serviceable = 1)
-  await sendTransaction({
+  const inspectAvionicsReceipt = await sendTransaction({
     publicClient,
     from: engineerAccount,
     to: aviationStorageAddress,
@@ -296,11 +309,10 @@ async function main() {
       args: ["AVIONICS-A350-SN102", 1, "ipfs://inspection-passed-avionics-102"],
     }),
   });
-
-
+  console.log(`✅ Inspected AVIONICS-A350-SN102 (Serviceable) - TX: ${inspectAvionicsReceipt.transactionHash}`);
 
   // 5. Kho điều chuyển khối điện tử lên máy bay VN-A899
-  await sendTransaction({
+  const transferReceipt = await sendTransaction({
     publicClient,
     from: warehouseAccount,
     to: aviationStorageAddress,
@@ -310,8 +322,9 @@ async function main() {
       args: ["AVIONICS-A350-SN102", "Aircraft VN-A899 (A350)"],
     }),
   });
+  console.log(`✅ Transferred AVIONICS-A350-SN102 to Aircraft VN-A899 - TX: ${transferReceipt.transactionHash}`);
 
-  console.log("Seed completed for chainId:", chainId);
+  console.log("\n✅ Seed completed for chainId:", chainId);
   console.log("Admin:", adminAccount);
   console.log("Warehouse:", warehouseAccount);
   console.log("Engineer:", engineerAccount);

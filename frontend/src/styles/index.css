@@ -5,19 +5,53 @@
 
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.92);
-  background-color: #0b1020;
+  background-color: #0A0F1C;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  
+  /* Performance optimizations */
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  will-change: auto;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Hardware acceleration for all interactive elements */
+* {
+  box-sizing: border-box;
+}
+
+button, input, select, a, .avi-card, .avi-tab, .avi-btn {
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 a {
   font-weight: 500;
   color: #646cff;
   text-decoration: inherit;
+  transition: color 0.3s ease;
 }
+
 a:hover {
   color: #535bf2;
 }
@@ -26,8 +60,12 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-}
-
-* {
-  box-sizing: border-box;
+  /* Smooth font rendering */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  /* Prevent layout shifts */
+  overflow-x: hidden;
+  /* Smooth scrolling performance */
+  -webkit-overflow-scrolling: touch;
 }

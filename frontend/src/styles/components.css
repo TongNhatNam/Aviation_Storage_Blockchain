@@ -275,8 +275,8 @@
 }
 
 .avi-btn {
-  padding: 10px 16px;
-  border-radius: 6px;
+  padding: 12px 20px;
+  border-radius: var(--border-radius-sm);
   border: 1px solid var(--glass-border);
   background: var(--glass-bg);
   color: #fff;
@@ -284,83 +284,93 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 1px;
-  font-size: 11px;
-  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  font-size: 12px;
+  transition: transform 0.1s ease, background 0.15s ease, border-color 0.15s ease;
   display: flex;
   justify-content: center;
   align-items: center;
+  gap: 8px;
+  position: relative;
+  /* Performance optimizations */
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
 }
 
 .avi-btn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.1);
-  transform: translateY(-1px);
+  background: var(--glass-hover);
+  border-color: var(--color-primary);
+  transform: translate3d(0, -1px, 0);
 }
 
 .avi-btn:active:not(:disabled) {
-  transform: translateY(1px);
+  transform: translate3d(0, 0, 0);
+  transition-duration: 0.05s;
 }
 
 .avi-btn:disabled {
   opacity: 0.4;
   cursor: not-allowed;
-  border-color: rgba(255, 255, 255, 0.05);
 }
 
 .avi-btn--primary {
-  border-color: var(--color-aviation-blue);
-  background: rgba(0, 102, 255, 0.2);
+  border-color: var(--color-secondary);
+  background: var(--gradient-primary);
   color: #fff;
-  box-shadow: 0 2px 10px rgba(0, 102, 255, 0.2);
+  font-weight: 700;
 }
 
 .avi-btn--primary:hover:not(:disabled) {
-  background: rgba(0, 102, 255, 0.35);
-  box-shadow: 0 4px 15px rgba(0, 102, 255, 0.3);
+  background: linear-gradient(135deg, rgba(0, 240, 255, 0.25), rgba(0, 102, 255, 0.35));
+  border-color: var(--color-primary);
+  transform: translate3d(0, -1px, 0);
 }
 
 .avi-tabs {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   margin-bottom: 24px;
-  border: 1px solid rgba(0, 240, 255, 0.16);
-  background: linear-gradient(135deg, rgba(0, 240, 255, 0.06), rgba(0, 102, 255, 0.08));
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
-  border-radius: 12px;
-  padding: 10px;
+  border: 1px solid var(--glass-border);
+  background: var(--gradient-card);
+  border-radius: var(--border-radius);
+  padding: 8px;
+  position: relative;
+  /* Performance optimizations */
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
 }
 
 .avi-tab {
-  padding: 10px 14px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.68);
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.7);
   cursor: pointer;
   font-family: var(--font-sans);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 1px;
   font-size: 11px;
-  border-radius: 10px;
-  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  border-radius: var(--border-radius-sm);
+  transition: all 0.2s ease;
   display: inline-flex;
   align-items: center;
   gap: 10px;
   position: relative;
-  overflow: hidden;
+  /* Performance optimizations */
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
 }
 
 .avi-tab:hover {
-  background: rgba(255, 255, 255, 0.07);
-  border-color: rgba(0, 240, 255, 0.25);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(0, 240, 255, 0.3);
   color: #fff;
-  transform: translateY(-1px);
 }
 
 .avi-tab.active {
-  background: linear-gradient(135deg, rgba(0, 240, 255, 0.18), rgba(0, 102, 255, 0.22));
-  border-color: rgba(0, 240, 255, 0.35);
+  background: var(--gradient-primary);
+  border-color: var(--color-primary);
   color: #fff;
-  box-shadow: 0 10px 25px rgba(0, 240, 255, 0.12);
 }
 
 .avi-tabIcon {
@@ -416,19 +426,21 @@
 }
 
 .avi-card {
-  border-radius: 2px;
-  border: 1px solid rgba(0, 102, 255, 0.2);
-  background: var(--glass-bg);
-  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  border-radius: var(--border-radius);
+  border: 1px solid var(--glass-border);
+  background: var(--gradient-card);
+  box-shadow: var(--shadow-card);
   overflow: hidden;
   position: relative;
-  /* Aviation/Sci-Fi beveled corners */
-  clip-path: polygon(0 0,
-      calc(100% - 16px) 0,
-      100% 16px,
-      100% 100%,
-      16px 100%,
-      0 calc(100% - 16px));
+  transition: transform 0.15s ease, border-color 0.15s ease;
+  /* Performance optimizations */
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+}
+
+.avi-card:hover {
+  border-color: rgba(0, 240, 255, 0.25);
+  transform: translate3d(0, -1px, 0);
 }
 
 .avi-card,
@@ -444,7 +456,8 @@
   left: 0;
   width: 100%;
   height: 2px;
-  background: linear-gradient(90deg, transparent, rgba(0, 102, 255, 0.5), transparent);
+  background: var(--gradient-primary);
+  opacity: 0.8;
 }
 
 .avi-cardHeader {

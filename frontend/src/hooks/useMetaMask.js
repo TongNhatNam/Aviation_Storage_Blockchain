@@ -26,6 +26,7 @@ export function useMetaMask() {
   const [account, setAccount] = useState(undefined);
   const [chainId, setChainId] = useState(undefined);
   const [error, setError] = useState(undefined);
+  const [isMockMode, setIsMockMode] = useState(false);
 
   const isAvailable = Boolean(ethereum);
   const isConnected = Boolean(account);
@@ -56,6 +57,20 @@ export function useMetaMask() {
     } catch (e) {
       setError(formatError(e));
     }
+  }, []);
+
+  const connectMockMode = useCallback(() => {
+    setIsMockMode(true);
+    setAccount("0x1234567890123456789012345678901234567890");
+    setChainId(1337);
+    setError(undefined);
+  }, []);
+
+  const exitMockMode = useCallback(() => {
+    setIsMockMode(false);
+    setAccount(undefined);
+    setChainId(undefined);
+    setError(undefined);
   }, []);
 
   const addOrSwitchGanache = useCallback(async () => {
@@ -132,11 +147,14 @@ export function useMetaMask() {
     isConnected,
     account,
     chainId,
+    isMockMode,
     ganache: {
       chainIdDec: GANACHE_CHAIN_ID_DEC,
       rpcUrl: GANACHE_RPC_URL,
     },
     connect,
+    connectMockMode,
+    exitMockMode,
     addOrSwitchGanache,
     connectAndSwitchGanache,
     error,

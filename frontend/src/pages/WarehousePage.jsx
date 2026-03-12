@@ -1,13 +1,40 @@
+import { useState, useCallback } from "react";
 import { SectionCard } from "../components/SectionCard.jsx";
 import { WarehouseActions } from "../components/WarehouseActions.jsx";
 import { ItemViewer } from "../components/ItemViewer.jsx";
+import { Breadcrumb } from "../components/Breadcrumb.jsx";
 
 export function WarehousePage({ wallet, roles, api, addNotification }) {
   const ready = Boolean(wallet?.account) && wallet?.chainId === 1337;
   const allowed = Boolean(roles?.isWarehouse) || Boolean(roles?.isAdmin);
+  const [activeTab, setActiveTab] = useState("REGISTER");
+
+  const getBreadcrumbItems = () => {
+    const base = [
+      { label: "Trang chủ", link: "/" },
+      { label: "Kho hàng không", link: "/warehouse" }
+    ];
+    
+    if (ready && allowed) {
+      if (activeTab === "REGISTER") {
+        base.push({ label: "Nhập kho mới" });
+      } else if (activeTab === "TRANSFER") {
+        base.push({ label: "Điều chuyển máy bay" });
+      } else if (activeTab === "UPDATE") {
+        base.push({ label: "Đổi kệ nội bộ" });
+      }
+    }
+    
+    return base;
+  };
+
+  const handleActionDone = useCallback(() => {
+    wallet?.refresh?.();
+  }, [wallet]);
 
   return (
     <div className="avi-grid">
+      <Breadcrumb items={getBreadcrumbItems()} />
       <SectionCard
         title={
           <span className="avi-pageTitle">
@@ -45,7 +72,7 @@ export function WarehousePage({ wallet, roles, api, addNotification }) {
       {ready && allowed && (
         <div className="avi-columns">
           <div className="avi-col">
-            <WarehouseActions api={api} disabled={false} onActionDone={() => wallet?.refresh?.()} addNotification={addNotification} />
+            <WarehouseActions api={api} disabled={false} onActionDone={handleActionDone} addNotification={addNotification} onTabChange={setActiveTab} />
           </div>
           <div className="avi-col">
             <SectionCard title="Tra cứu & danh sách" subtitle="Xem lịch sử cập nhật và trạng thái kiểm định">

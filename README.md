@@ -10,7 +10,7 @@
 ## Công nghệ sử dụng
 ### Frontend
 - **React 19 / Vite** - Framework xây dựng giao diện tốc độ cao
-- **Ethers.js / Web3.js** - Thư viện tương tác với blockchain và Smart Contract
+- **Ethers.js** - Thư viện tương tác với blockchain và Smart Contract (tối ưu, nhẹ)
 - **Recharts** - Hiển thị biểu đồ phân tích trực quan
 - **html2canvas & jsPDF** - Hỗ trợ in và xuất chứng nhận điện tử (PDF)
 - **qrcode.react** - Sinh mã QR cho thiết bị

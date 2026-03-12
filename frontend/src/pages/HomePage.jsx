@@ -1,7 +1,7 @@
 import { HashLink } from "../router/hashRouter.jsx";
 import { SectionCard } from "../components/SectionCard.jsx";
 import { ItemViewer } from "../components/ItemViewer.jsx";
-import { useAviationStorageEthers } from "../hooks/useAviationStorageEthers.js";
+import { useAviationStorage } from "../hooks/useAviationStorage.js";
 import { useEffect, useState } from "react";
 import { isItemLocked } from "../utils/itemState.js";
 
@@ -32,13 +32,15 @@ const ROLES_INFO = [
 export function HomePage({ wallet, roles }) {
   const connected = Boolean(wallet?.account);
   const onGanache = wallet?.chainId === 1337 || wallet?.chainId === 5777;
-  const api = useAviationStorageEthers({ chainId: wallet.chainId });
+  const isMockMode = wallet?.isMockMode;
+  const api = useAviationStorage({ chainId: wallet.chainId });
   const [kpiData, setKpiData] = useState({ total: 0, serviceable: 0, unserviceable: 0, locked: 0 });
 
   const hasLookup = window.location.hash.includes('lookup=');
 
   useEffect(() => {
-    if (!api?.isDeployedOnThisChain) return;
+    // TODO: Fix KPI loading
+    return;
     
     async function loadKPI() {
       try {
@@ -51,12 +53,12 @@ export function HomePage({ wallet, roles }) {
           setKpiData({ total, serviceable, unserviceable, locked });
         }
       } catch (e) {
-        console.error(e);
+        console.error("KPI load error:", e);
       }
     }
 
     loadKPI();
-  }, [api]);
+  }, [api, connected]);
 
   if (hasLookup) {
     setTimeout(() => {
@@ -97,13 +99,30 @@ export function HomePage({ wallet, roles }) {
               </div>
               <div className={`avi-kpiItem ${onGanache ? "avi-kpiItem--ok" : "avi-kpiItem--warn"}`}>
                 <div className="avi-kpiKey">📡 Network Frequency</div>
-                <div className="avi-kpiVal">{onGanache ? `SYS-${wallet?.chainId}` : "UNSYNCED"}</div>
+                <div className="avi-kpiVal">{onGanache ? `SYS-${wallet?.chainId}` : isMockMode ? "DEMO" : "UNSYNCED"}</div>
               </div>
               <div className={`avi-kpiItem ${roles?.address ? "avi-kpiItem--ok" : "avi-kpiItem--warn"}`}>
                 <div className="avi-kpiKey">📋 Smart Contract Registry</div>
-                <div className="avi-kpiVal">{roles?.address ? "DEPLOYED" : "PENDING"}</div>
+                <div className="avi-kpiVal">{roles?.address ? "DEPLOYED" : isMockMode ? "MOCK" : "PENDING"}</div>
               </div>
             </div>
+            {!connected && (
+              <div style={{ marginTop: 20, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                <button className="avi-btn avi-btn--primary" onClick={() => wallet?.connect?.()}>
+                  🔗 Kết nối MetaMask
+                </button>
+                <button className="avi-btn avi-btn--secondary" onClick={() => wallet?.connectMockMode?.()}>
+                  🎮 Chế độ Demo (Không cần MetaMask)
+                </button>
+              </div>
+            )}
+            {connected && isMockMode && (
+              <div style={{ marginTop: 20, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                <button className="avi-btn avi-btn--secondary" onClick={() => wallet?.exitMockMode?.()}>
+                  ❌ Thoát Chế độ Demo
+                </button>
+              </div>
+            )}
           </SectionCard>
 
 
