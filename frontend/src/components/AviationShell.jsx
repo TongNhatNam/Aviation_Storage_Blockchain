@@ -23,9 +23,9 @@ export function AviationShell({ wallet, roles, children }) {
     window.location.hash = `#/?lookup=${encodeURIComponent(extractedCode)}`;
   };
   const roleLabels = [];
-  if (roles?.isAdmin) roleLabels.push({ label: "Quản trị", tone: "info" });
-  if (roles?.isWarehouse) roleLabels.push({ label: "Kho hàng", tone: "ok" });
-  if (roles?.isEngineer) roleLabels.push({ label: "Kỹ sư", tone: "warn" });
+  if (roles?.isAdmin) roleLabels.push({ label: "Quản trị", tone: "admin" });
+  if (roles?.isWarehouse) roleLabels.push({ label: "Kho hàng", tone: "warehouse" });
+  if (roles?.isEngineer) roleLabels.push({ label: "Kỹ sư", tone: "engineer" });
   if (!roleLabels.length && wallet?.account) roleLabels.push({ label: "No role", tone: "muted" });
   const isConnected = Boolean(wallet?.account);
   const isGanache = wallet?.chainId === 1337;
@@ -58,7 +58,7 @@ export function AviationShell({ wallet, roles, children }) {
           </HashLink>
           <HashLink className="avi-navLink" to="/admin">
             <span className="avi-navIcon avi-navIcon--admin" aria-hidden="true" />
-            <span>Quản trị Radar</span>
+            <span>Quản trị</span>
           </HashLink>
         </nav>
 
@@ -122,7 +122,7 @@ export function AviationShell({ wallet, roles, children }) {
       <footer className="avi-statusbar">
         <div className="avi-statusbar-item ok">HỆ THỐNG: ONLINE</div>
         <div className={`avi-statusbar-item ${isConnected ? "ok" : "warn"}`}>
-          KẾT NỐI: {isConnected ? "ĐÃ KẾT NỐI" : "ĐÃ NGẮT"}
+          KẾẾT NỐI: {isConnected ? "ĐÃ KẾẾT NỐI" : "ĐÃ NGẮT"}
         </div>
         <div className={`avi-statusbar-item ${isGanache ? "ok" : "error"}`}>
           MẠNG: {wallet?.chainId ?? "N/A"}

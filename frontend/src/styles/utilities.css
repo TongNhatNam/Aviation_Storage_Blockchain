@@ -1,0 +1,369 @@
+/* Utility Classes and Animations */
+
+/* Text utilities */
+.avi-muted {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
+}
+
+.avi-mono {
+  font-family: var(--font-mono);
+  color: var(--color-radar-green);
+  letter-spacing: 0.5px;
+}
+
+/* Animations */
+.avi-pulse {
+  animation: pulse-subtle 2s infinite;
+}
+
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+}
+
+.avi-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+.avi-glow {
+  box-shadow: 0 0 20px rgba(0, 240, 255, 0.3);
+  border-color: var(--color-primary);
+}
+
+/* Loading states */
+.avi-skeleton {
+  background: linear-gradient(90deg, rgba(255,255,255,0.1) 25%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0.1) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+  border-radius: 4px;
+}
+
+@keyframes skeleton-loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.avi-skeleton-card {
+  height: 120px;
+  margin-bottom: 16px;
+}
+
+.avi-skeleton-text {
+  height: 16px;
+  margin-bottom: 8px;
+}
+
+.avi-skeleton-text--small {
+  height: 12px;
+  width: 60%;
+}
+
+.avi-skeleton-chart {
+  height: 250px;
+  border-radius: 8px;
+}
+
+.avi-spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid rgba(0, 240, 255, 0.2);
+  border-top: 2px solid var(--color-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  display: inline-block;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.avi-loading-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+}
+
+/* Smooth transitions */
+* {
+  transition-property: color, background-color, border-color, box-shadow, transform, opacity;
+  transition-duration: 0.15s;
+  transition-timing-function: ease;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 240, 255, 0.3);
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 240, 255, 0.5);
+}
+
+/* Mobile responsive utilities */
+@media (max-width: 768px) {
+  .avi-columns {
+    grid-template-columns: 1fr;
+  }
+  
+  .avi-inline {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .avi-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .avi-formGrid {
+    grid-template-columns: 1fr;
+  }
+}
+/* KPI Components */
+.avi-kpi {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.avi-kpiItem {
+  padding: 16px;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 102, 255, 0.2);
+  background: rgba(0, 0, 0, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.avi-kpiItem::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 30px;
+  height: 30px;
+  background: linear-gradient(135deg, transparent 50%, rgba(255, 255, 255, 0.05) 50%);
+}
+
+.avi-kpiItem--ok {
+  border-color: rgba(0, 255, 102, 0.3);
+}
+
+.avi-kpiItem--ok .avi-kpiVal {
+  color: var(--color-radar-green);
+}
+
+.avi-kpiItem--warn {
+  border-color: rgba(255, 153, 0, 0.3);
+}
+
+.avi-kpiItem--warn .avi-kpiVal {
+  color: var(--color-safety-orange);
+}
+
+.avi-kpiKey {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.avi-kpiVal {
+  margin-top: 8px;
+  font-weight: 700;
+  font-size: 24px;
+  font-family: var(--font-mono);
+}
+/* Role List Components */
+.avi-roleList {
+  display: grid;
+  gap: 12px;
+}
+
+.avi-roleRow {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 8px 16px;
+  padding: 14px 16px;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 102, 255, 0.15);
+  background: rgba(0, 0, 0, 0.3);
+  align-items: center;
+}
+
+.avi-roleLabel {
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 1px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.avi-roleAddress {
+  font-family: var(--font-mono);
+  color: var(--color-radar-green);
+  font-size: 13px;
+}
+
+.avi-roleNote {
+  grid-column: 1 / -1;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.1);
+  padding-top: 8px;
+  margin-top: 4px;
+}
+
+.avi-pre {
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(0, 102, 255, 0.2);
+  color: var(--color-radar-green);
+  padding: 16px;
+  border-radius: 6px;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+/* Role Overview Components */
+.avi-role-overview {
+  margin-bottom: 16px;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  border: 1px solid rgba(0, 240, 255, 0.15);
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.avi-role-overview.collapsed .avi-role-details {
+  display: none;
+}
+
+.avi-role-toggle {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px;
+  border-radius: 4px;
+  transition: color 0.2s ease;
+}
+
+.avi-role-toggle:hover {
+  color: var(--color-primary);
+  background: rgba(0, 240, 255, 0.1);
+}
+
+.avi-role-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.avi-role-badge {
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border: 2px solid;
+}
+
+.avi-role-badge--admin {
+  background: rgba(255, 51, 102, 0.15);
+  border-color: #ff3366;
+  color: #ff3366;
+  box-shadow: 0 0 12px rgba(255, 51, 102, 0.3);
+}
+
+.avi-role-badge--warehouse {
+  background: rgba(0, 255, 136, 0.15);
+  border-color: var(--color-success);
+  color: var(--color-success);
+  box-shadow: 0 0 12px rgba(0, 255, 136, 0.3);
+}
+
+.avi-role-badge--engineer {
+  background: rgba(255, 170, 0, 0.15);
+  border-color: var(--color-warning);
+  color: var(--color-warning);
+  box-shadow: 0 0 12px rgba(255, 170, 0, 0.3);
+}
+
+.avi-role-status {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.8);
+  font-style: italic;
+}
+
+.avi-role-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.avi-role-section h4 {
+  margin: 0 0 12px 0;
+  font-size: 13px;
+  color: var(--color-primary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 700;
+}
+
+.avi-role-section ul {
+  margin: 0;
+  padding-left: 20px;
+  list-style: none;
+}
+
+.avi-role-section li {
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.5;
+  position: relative;
+}
+
+.avi-role-section li::before {
+  content: "▸";
+  position: absolute;
+  left: -16px;
+  color: var(--color-success);
+  font-weight: bold;
+}

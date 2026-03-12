@@ -46,6 +46,9 @@ export function EngineerActions({ api, disabled, onActionDone, addNotification, 
   // Notify parent when tab changes
   useEffect(() => {
     onTabChange?.(activeTab);
+    // Clear transaction info when switching tabs
+    setTxReceipt(undefined);
+    setMessage(undefined);
   }, [activeTab, onTabChange]);
 
   // Tự động tạo notesHash khi thay đổi code hoặc status

@@ -152,7 +152,7 @@ export function DashboardPage({ api }) {
           <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 20 }}>
             {/* Status Chart */}
             <SectionCard title="📈 Phân Bố Trạng Thái" subtitle="Tình trạng kỹ thuật phụ tùng">
-              <div style={{ marginTop: 20, display: 'flex', justifyContent: 'center', height: 250 }}>
+              <div className="dashboard-chart-container" style={{ marginTop: 20, display: 'flex', justifyContent: 'center', height: 300 }}>
                 {stats.total > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
@@ -184,7 +184,24 @@ export function DashboardPage({ api }) {
                         contentStyle={{ background: 'rgba(5, 15, 30, 0.95)', border: '1px solid rgba(0, 240, 255, 0.3)', borderRadius: 8, color: '#fff' }}
                         itemStyle={{ color: '#fff' }}
                       />
-                      <Legend verticalAlign="bottom" height={36} wrapperStyle={{ fontSize: '0.85rem' }} />
+                      <Legend 
+                        verticalAlign="bottom" 
+                        height={60} 
+                        wrapperStyle={{ 
+                          fontSize: '0.85rem', 
+                          paddingTop: '20px',
+                          display: 'flex',
+                          justifyContent: 'center',
+                          gap: '24px'
+                        }}
+                        iconType="circle"
+                        layout="horizontal"
+                        align="center"
+                        itemStyle={{
+                          marginRight: '20px',
+                          marginLeft: '8px'
+                        }}
+                      />
                     </PieChart>
                   </ResponsiveContainer>
                 ) : (

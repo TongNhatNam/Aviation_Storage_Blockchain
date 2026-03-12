@@ -131,7 +131,7 @@ export function AdminPage({ wallet, roles, contractAddress, onRoleChanged, api, 
             <span>Quản trị Hệ thống</span>
           </span>
         }
-        subtitle="Quản lý quyền hạn, danh mục và chính sách"
+        subtitle="Quản lý quyền hạn, danh mục và chính sách • Toàn quyền hệ thống • Phân quyền người dùng • Cấu hình bảo mật • Giám sát hoạt động blockchain"
         right={<img className="avi-pageBadge" src="/role_admin.png" alt="Admin" style={{ width: 120, height: 120 }} />}
       >
         {!ready ? <div className="avi-alert avi-alert--warn">Hãy connect MetaMask và chuyển sang Ganache 1337.</div> : null}

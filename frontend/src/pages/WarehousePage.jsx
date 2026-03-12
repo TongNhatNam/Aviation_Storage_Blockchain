@@ -42,7 +42,7 @@ export function WarehousePage({ wallet, roles, api, addNotification }) {
             <span>Kho hàng không</span>
           </span>
         }
-        subtitle="Nghiệp vụ nhập/xuất/cộng kho vật tư & phụ tùng"
+        subtitle="Nghiệp vụ nhập/xuất/cộng kho vật tư & phụ tùng • Nhập kho tài sản mới • Điều chuyển đến máy bay • Quản lý vị trí kệ • Tạo QR code • Kiểm kê tồn kho"
         right={<img className="avi-pageBadge" src="/role_warehouse.png" alt="Warehouse" style={{ width: 120, height: 120 }} />}
       >
         {!ready ? (

@@ -1,0 +1,178 @@
+/* Form Components */
+.avi-input {
+  width: 100%;
+  padding: 12px 16px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(0, 240, 255, 0.2);
+  border-radius: 6px;
+  color: #fff;
+  font-size: 14px;
+  font-family: var(--font-sans);
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.avi-input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(0, 240, 255, 0.1);
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.avi-input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.avi-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.avi-select {
+  width: 100%;
+  padding: 12px 16px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(0, 240, 255, 0.2);
+  border-radius: 6px;
+  color: #fff;
+  font-size: 14px;
+  font-family: var(--font-sans);
+  transition: all 0.2s ease;
+  outline: none;
+  cursor: pointer;
+}
+
+.avi-select:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(0, 240, 255, 0.1);
+}
+
+.avi-textarea {
+  width: 100%;
+  min-height: 100px;
+  padding: 12px 16px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(0, 240, 255, 0.2);
+  border-radius: 6px;
+  color: #fff;
+  font-size: 14px;
+  font-family: var(--font-sans);
+  transition: all 0.2s ease;
+  outline: none;
+  resize: vertical;
+}
+
+.avi-textarea:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(0, 240, 255, 0.1);
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.avi-textarea::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* Form groups */
+.avi-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.avi-form-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.avi-form-help {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 4px;
+}
+
+.avi-formGrid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1fr 1fr;
+  contain: layout style;
+}
+
+.avi-span2 {
+  grid-column: 1 / -1;
+}
+
+/* Dropdown fixes */
+:root {
+  --dropdown-bg: #1a2332;
+  --dropdown-text: #ffffff;
+  --dropdown-hover-bg: #2a3442;
+  --dropdown-selected-bg: #00f0ff;
+}
+
+select {
+  background: #1a2332 !important;
+  color: #ffffff !important;
+}
+
+select option {
+  background: #1a2332 !important;
+  color: #ffffff !important;
+  padding: 8px 12px !important;
+}
+
+select option:hover {
+  background: #2a3442 !important;
+  color: #00f0ff !important;
+}
+
+select option:checked,
+select option:selected {
+  background: #00f0ff !important;
+  color: #000000 !important;
+  font-weight: bold !important;
+}
+
+/* Target all select elements globally */
+* select,
+* select option {
+  color: #ffffff !important;
+  background-color: #1a2332 !important;
+}
+
+/* Target by attribute and class */
+select[class*="avi"],
+.avi-select,
+input[type="select"] {
+  background-color: var(--dropdown-bg) !important;
+  color: var(--dropdown-text) !important;
+}
+
+select[class*="avi"] option,
+.avi-select option,
+input[type="select"] option {
+  background-color: var(--dropdown-bg) !important;
+  color: var(--dropdown-text) !important;
+}
+
+/* Force text color on focus and active states */
+select:focus,
+select:active,
+select:focus option,
+select:active option {
+  color: #ffffff !important;
+  background: #1a2332 !important;
+}
+
+/* Ensure text is visible in all states */
+option {
+  color: #ffffff !important;
+  background: #1a2332 !important;
+}
+
+/* Last resort - use text-shadow for visibility */
+select option {
+  text-shadow: 0 0 1px #ffffff !important;
+}
